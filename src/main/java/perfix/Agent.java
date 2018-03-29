@@ -15,6 +15,7 @@ public class Agent {
 
         inst.addTransformer((classLoader, resource, aClass, protectionDomain, uninstrumentedByteCode) -> {
             if (!shouldExclude(resource, excludes).get()) {
+                System.out.println("instrumenting "+resource);
                 try {
                     return instrumentMethod(resource);
                 } catch (Exception ex) {
