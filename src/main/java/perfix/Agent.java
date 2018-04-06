@@ -2,8 +2,13 @@ package perfix;
 
 import javassist.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,33 +16,84 @@ import java.util.List;
 public class Agent {
 
     public static void premain(String agentArgs, Instrumentation inst) {
-        List<String> excludes = determineExcludes();
+        System.out.println("Perfix agent active");
+        startListeningOnSocket();
+
+        List<String> includes = determineIncludes();
 
         inst.addTransformer((classLoader, resource, aClass, protectionDomain, uninstrumentedByteCode) -> {
-            if (!shouldExclude(resource, excludes).get()) {
-                System.out.println("instrumenting "+resource);
+            if (!isInnerClass(resource) && shouldInclude(resource, includes)) {
+//                System.out.println("instrumenting " + resource);
+
                 try {
-                    return instrumentMethod(resource);
+                    byte[] instrumentedBytecode = instrumentMethod(resource);
+                    if (instrumentedBytecode != null) {
+                        return instrumentedBytecode;
+                    }
                 } catch (Exception ex) {
-                    ex.printStackTrace(System.err);
+                    //suppress
+
                 }
             }
             return uninstrumentedByteCode;
         });
     }
 
-    private static byte[] instrumentMethod(String resource) throws NotFoundException, IOException, CannotCompileException {
+    private static void startListeningOnSocket() {
+        try {
+            ServerSocket serverSocket = new ServerSocket(2048);
+            new Thread(() -> {
+                for (; ; ) {
+                    try {
+                        Socket client = serverSocket.accept();
+
+                        PrintStream out = new PrintStream(client.getOutputStream());
+                        out.println("press [enter] for report or [q and enter] to quit");
+
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (line.equals("q")) {
+                                try {
+                                    client.close();
+                                    break;
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                Registry.report(out);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } 
+                }
+            }).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean isInnerClass(String resource) {
+        return resource.contains("$");
+    }
+
+    private static byte[] instrumentMethod(String resource) throws
+            NotFoundException, IOException, CannotCompileException {
         ClassPool cp = ClassPool.getDefault();
         CtClass methodClass = cp.get("perfix.Method");
 
-
-        CtClass cc = cp.get(resource.replaceAll("/", "."));
-        Arrays.stream(cc.getDeclaredMethods()).forEach(m -> {
-            instrumentMethod(methodClass, m);
-        });
-        byte[] byteCode = cc.toBytecode();
-        cc.detach();
-        return byteCode;
+        CtClass classToInstrument = cp.get(resource.replaceAll("/", "."));
+        if (!classToInstrument.isInterface()) {
+            Arrays.stream(classToInstrument.getDeclaredMethods()).forEach(m -> {
+                instrumentMethod(methodClass, m);
+            });
+            byte[] byteCode = classToInstrument.toBytecode();
+            classToInstrument.detach();
+            return byteCode;
+        } else {
+            return null;
+        }
     }
 
     private static void instrumentMethod(CtClass methodClass, CtMethod m) {
@@ -46,24 +102,22 @@ public class Agent {
             m.insertBefore("perfixmethod = perfix.Method.start(\"" + m.getLongName() + "\");");
             m.insertAfter("perfixmethod.stop();");
         } catch (CannotCompileException e) {
-            e.printStackTrace(System.err);
+            throw new RuntimeException(e);
         }
     }
 
-    private static List<String> determineExcludes() {
-        List<String> excludes = new ArrayList<>(Arrays.asList(System.getProperty("perfix.excludes").split(",")));
-        excludes.add("perfix");
-        return excludes;
+    private static List<String> determineIncludes() {
+        return new ArrayList<>(Arrays.asList(System.getProperty("perfix.includes").split(",")));
     }
 
-    private static BooleanWrapper shouldExclude(String resource, List<String> excludes) {
-        BooleanWrapper excluded = new BooleanWrapper(false);
-        excludes.forEach(exclude -> {
-            if (resource.startsWith(exclude)) {
-                excluded.set(true);
+    private static boolean shouldInclude(String resource, List<String> excludes) {
+        BooleanWrapper included = new BooleanWrapper(false);
+        excludes.forEach(include -> {
+            if (resource.startsWith(include)) {
+                included.set(true);
             }
         });
-        return excluded;
+        return included.get();
     }
 
     static class BooleanWrapper {
@@ -79,6 +133,11 @@ public class Agent {
 
         boolean get() {
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return Boolean.toString(value);
         }
     }
 }
