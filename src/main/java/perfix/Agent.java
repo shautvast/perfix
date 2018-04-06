@@ -23,8 +23,6 @@ public class Agent {
 
         inst.addTransformer((classLoader, resource, aClass, protectionDomain, uninstrumentedByteCode) -> {
             if (!isInnerClass(resource) && shouldInclude(resource, includes)) {
-//                System.out.println("instrumenting " + resource);
-
                 try {
                     byte[] instrumentedBytecode = instrumentMethod(resource);
                     if (instrumentedBytecode != null) {
@@ -123,7 +121,7 @@ public class Agent {
     static class BooleanWrapper {
         boolean value;
 
-        public BooleanWrapper(boolean value) {
+        BooleanWrapper(boolean value) {
             this.value = value;
         }
 
