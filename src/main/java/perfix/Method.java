@@ -5,7 +5,7 @@ public class Method {
     private final String name;
     private long t1;
 
-    public Method(String name) {
+    private Method(String name) {
         t0 = System.nanoTime();
         this.name = name;
     }

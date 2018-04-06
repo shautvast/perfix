@@ -15,10 +15,17 @@ import java.util.List;
 
 public class Agent {
 
+    public static final String MESSAGE = "Perfix agent active";
+
     public static void premain(String agentArgs, Instrumentation inst) {
-        System.out.println("Perfix agent active");
+        System.out.println(MESSAGE);
+
         startListeningOnSocket();
 
+        instrumentCode(inst);
+    }
+
+    private static void instrumentCode(Instrumentation inst) {
         List<String> includes = determineIncludes();
 
         inst.addTransformer((classLoader, resource, aClass, protectionDomain, uninstrumentedByteCode) -> {
@@ -30,7 +37,6 @@ public class Agent {
                     }
                 } catch (Exception ex) {
                     //suppress
-
                 }
             }
             return uninstrumentedByteCode;
