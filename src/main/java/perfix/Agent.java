@@ -2,90 +2,59 @@ package perfix;
 
 import javassist.*;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+
 public class Agent {
 
-    public static final String MESSAGE = "Perfix agent active";
+    private static final String PORT_PROPERTY = "perfix.port";
+    private static final String INCLUDES_PROPERTY = "perfix.includes";
+
+    private static final String DEFAULT_PORT = "2048";
+    private static final String MESSAGE = "Perfix agent active";
+
+    private static final String PERFIX_METHOD_CLASS = "perfix.Method";
 
     public static void premain(String agentArgs, Instrumentation inst) {
         System.out.println(MESSAGE);
 
-        startListeningOnSocket();
+        int port = Integer.parseInt(System.getProperty(PORT_PROPERTY, DEFAULT_PORT));
 
         instrumentCode(inst);
+
+        new Server().startListeningOnSocket(port);
     }
 
     private static void instrumentCode(Instrumentation inst) {
         List<String> includes = determineIncludes();
 
-        inst.addTransformer((classLoader, resource, aClass, protectionDomain, uninstrumentedByteCode) -> {
-            if (!isInnerClass(resource) && shouldInclude(resource, includes)) {
-                try {
-                    byte[] instrumentedBytecode = instrumentMethod(resource);
-                    if (instrumentedBytecode != null) {
-                        return instrumentedBytecode;
-                    }
-                } catch (Exception ex) {
-                    //suppress
+        inst.addTransformer((classLoader, resource, aClass, protectionDomain, uninstrumentedByteCode)
+                -> createByteCode(includes, resource, uninstrumentedByteCode));
+    }
+
+    private static byte[] createByteCode(List<String> includes, String resource, byte[] uninstrumentedByteCode) {
+        if (!isInnerClass(resource) && shouldInclude(resource, includes)) {
+            try {
+                byte[] instrumentedBytecode = instrumentMethod(resource);
+                if (instrumentedBytecode != null) {
+                    return instrumentedBytecode;
                 }
+            } catch (Exception ex) {
+                //suppress
             }
-            return uninstrumentedByteCode;
-        });
-    }
-
-    private static void startListeningOnSocket() {
-        try {
-            ServerSocket serverSocket = new ServerSocket(2048);
-            new Thread(() -> {
-                for (; ; ) {
-                    try {
-                        Socket client = serverSocket.accept();
-
-                        PrintStream out = new PrintStream(client.getOutputStream());
-                        out.println("press [enter] for report or [q and enter] to quit");
-
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            if (line.equals("q")) {
-                                try {
-                                    client.close();
-                                    break;
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                Registry.report(out);
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } 
-                }
-            }).start();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-    }
-
-    private static boolean isInnerClass(String resource) {
-        return resource.contains("$");
+        return uninstrumentedByteCode;
     }
 
     private static byte[] instrumentMethod(String resource) throws
             NotFoundException, IOException, CannotCompileException {
         ClassPool cp = ClassPool.getDefault();
-        CtClass methodClass = cp.get("perfix.Method");
+        CtClass methodClass = cp.get(PERFIX_METHOD_CLASS);
 
         CtClass classToInstrument = cp.get(resource.replaceAll("/", "."));
         if (!classToInstrument.isInterface()) {
@@ -111,7 +80,7 @@ public class Agent {
     }
 
     private static List<String> determineIncludes() {
-        return new ArrayList<>(Arrays.asList(System.getProperty("perfix.includes").split(",")));
+        return new ArrayList<>(asList(System.getProperty(INCLUDES_PROPERTY).split(",")));
     }
 
     private static boolean shouldInclude(String resource, List<String> excludes) {
@@ -122,6 +91,10 @@ public class Agent {
             }
         });
         return included.get();
+    }
+
+    private static boolean isInnerClass(String resource) {
+        return resource.contains("$");
     }
 
     static class BooleanWrapper {
