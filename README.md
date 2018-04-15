@@ -7,3 +7,4 @@ Pretty basic profiling tool for JVM's
 <br/> * #invocations
 <br/> * total execution time for the method in nanoseconds (this is also the sorting order)
 <br/> * average time in nanoseconds per method (= total/#invocations)
+* The server starts on port 2048 by default. Use -Dperfix.port=... to adjust.
