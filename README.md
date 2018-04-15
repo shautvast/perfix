@@ -1,5 +1,5 @@
 # perfix
-poor man's profiling for JVM's
+Pretty basic profiling tool for JVM's
 
 * agent that instruments loaded classes: -javaagent:perfix.jar
 * skip instrumentation with -Dperfix.excludes=java,com,org ...etc
