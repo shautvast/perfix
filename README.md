@@ -6,4 +6,4 @@ Pretty basic profiling tool for JVM's
 * telnet interface to report executed methods:
 <br/> * #invocations
 <br/> * total execution time for the method in nanoseconds
-<br/> * average time in nanoseconds per method (= total/#invocatons)
+<br/> * average time in nanoseconds per method (= total/#invocations)
