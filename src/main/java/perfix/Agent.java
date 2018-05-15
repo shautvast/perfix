@@ -1,14 +1,15 @@
 package perfix;
 
 import javassist.*;
+import perfix.server.SSHServer;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 
 public class Agent {
 
@@ -18,16 +19,20 @@ public class Agent {
     private static final String DEFAULT_PORT = "2048";
     private static final String MESSAGE = "Perfix agent active";
 
-    private static final String PERFIX_METHOD_CLASS = "perfix.Method";
+    private static final String PERFIX_METHODINVOCATION_CLASS = "perfix.MethodInvocation";
+
+    private static ClassPool classpool;
 
     public static void premain(String agentArgs, Instrumentation inst) {
         System.out.println(MESSAGE);
 
         int port = Integer.parseInt(System.getProperty(PORT_PROPERTY, DEFAULT_PORT));
 
+        classpool = ClassPool.getDefault();
+
         instrumentCode(inst);
 
-        new Server().startListeningOnSocket(port);
+        new SSHServer().startListeningOnSocket(port);
     }
 
     private static void instrumentCode(Instrumentation inst) {
@@ -38,28 +43,59 @@ public class Agent {
     }
 
     private static byte[] createByteCode(List<String> includes, String resource, byte[] uninstrumentedByteCode) {
-        if (!isInnerClass(resource) && shouldInclude(resource, includes)) {
+        if (!isInnerClass(resource)) {
             try {
-                byte[] instrumentedBytecode = instrumentMethod(resource);
-                if (instrumentedBytecode != null) {
-                    return instrumentedBytecode;
+                CtClass ctClass = getCtClassForResource(resource);
+                if (isJdbcStatement(resource, ctClass)) {
+                    return instrumentJdbcCalls(ctClass);
+                }
+                if (shouldInclude(resource, includes)) {
+                    byte[] instrumentedBytecode = instrumentMethod(ctClass);
+                    if (instrumentedBytecode != null) {
+                        return instrumentedBytecode;
+                    }
                 }
             } catch (Exception ex) {
                 //suppress
             }
+
         }
         return uninstrumentedByteCode;
     }
 
-    private static byte[] instrumentMethod(String resource) throws
-            NotFoundException, IOException, CannotCompileException {
-        ClassPool cp = ClassPool.getDefault();
-        CtClass methodClass = cp.get(PERFIX_METHOD_CLASS);
+    private static byte[] instrumentJdbcCalls(CtClass classToInstrument) throws IOException, CannotCompileException {
+        try {
+            stream(classToInstrument.getDeclaredMethods("executeQuery")).forEach(m -> {
+                try {
+                    m.insertBefore("System.out.println($1);");
+                } catch (CannotCompileException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        byte[] byteCode = classToInstrument.toBytecode();
+        classToInstrument.detach();
+        return byteCode;
+    }
 
-        CtClass classToInstrument = cp.get(resource.replaceAll("/", "."));
+    private static boolean isJdbcStatement(String resource, CtClass ctClass) throws NotFoundException {
+        if (!resource.startsWith("java/sql")) {
+            return stream(ctClass.getInterfaces())
+                    .anyMatch(i -> i.getName().equals("java.sql.Statement") && !i.getName().equals("java.sql.PreparedStatement"));
+        }
+        return false;
+    }
+
+    private static byte[] instrumentMethod(CtClass classToInstrument) throws
+            NotFoundException, IOException, CannotCompileException {
+
+        CtClass perfixMethodInvocationClass = getCtClass(PERFIX_METHODINVOCATION_CLASS);
+
         if (!classToInstrument.isInterface()) {
-            Arrays.stream(classToInstrument.getDeclaredMethods()).forEach(m -> {
-                instrumentMethod(methodClass, m);
+            stream(classToInstrument.getDeclaredMethods()).forEach(m -> {
+                instrumentMethod(perfixMethodInvocationClass, m);
             });
             byte[] byteCode = classToInstrument.toBytecode();
             classToInstrument.detach();
@@ -69,11 +105,19 @@ public class Agent {
         }
     }
 
-    private static void instrumentMethod(CtClass methodClass, CtMethod m) {
+    private static CtClass getCtClassForResource(String resource) throws NotFoundException {
+        return getCtClass(resource.replaceAll("/", "."));
+    }
+
+    private static CtClass getCtClass(String classname) throws NotFoundException {
+        return classpool.get(classname);
+    }
+
+    private static void instrumentMethod(CtClass methodClass, CtMethod methodToinstrument) {
         try {
-            m.addLocalVariable("perfixmethod", methodClass);
-            m.insertBefore("perfixmethod = perfix.Method.start(\"" + m.getLongName() + "\");");
-            m.insertAfter("perfixmethod.stop();");
+            methodToinstrument.addLocalVariable("perfixmethod", methodClass);
+            methodToinstrument.insertBefore("perfixmethod = perfix.MethodInvocation.start(\"" + methodToinstrument.getLongName() + "\");");
+            methodToinstrument.insertAfter("perfixmethod.stop();");
         } catch (CannotCompileException e) {
             throw new RuntimeException(e);
         }

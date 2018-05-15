@@ -8,14 +8,14 @@ import java.util.concurrent.atomic.LongAdder;
 
 public class Registry {
 
-    private static final Map<String, List<Method>> methods = new ConcurrentHashMap<>();
+    private static final Map<String, List<MethodInvocation>> methods = new ConcurrentHashMap<>();
     private static final double NANO_2_MILLI = 1000000D;
     private static final String HEADER1 = "Invoked methods, by duration desc:";
-    private static final String HEADER2 = "Method name;#Invocations;Total duration;Average Duration";
+    private static final String HEADER2 = "MethodInvocation name;#Invocations;Total duration;Average Duration";
     private static final String FOOTER = "----------------------------------------";
 
-    static void add(Method method) {
-        methods.computeIfAbsent(method.getName(), key -> new ArrayList<>()).add(method);
+    static void add(MethodInvocation methodInvocation) {
+        methods.computeIfAbsent(methodInvocation.getName(), key -> new ArrayList<>()).add(methodInvocation);
     }
 
     public static void report(PrintStream out) {
@@ -25,6 +25,7 @@ public class Registry {
                 .map(entry -> createReportLine(entry.getValue()))
                 .forEach(out::println);
         out.println(FOOTER);
+        out.flush();
     }
 
     private static String createReportLine(Report report) {

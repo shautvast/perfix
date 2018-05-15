@@ -1,4 +1,6 @@
-package perfix;
+package perfix.server;
+
+import perfix.Registry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,8 +9,8 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Server {
-    void startListeningOnSocket(int port) {
+public class TelnetServer implements Server {
+    public void startListeningOnSocket(int port) {
         try {
             ServerSocket serverSocket = new ServerSocket(port);
             new Thread(() -> {

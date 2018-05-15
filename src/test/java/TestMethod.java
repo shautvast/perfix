@@ -1,16 +1,16 @@
 import org.junit.Test;
-import perfix.Method;
+import perfix.MethodInvocation;
 import perfix.Registry;
 
 public class TestMethod {
     @Test
     public void testAddMethodToRegistry() {
-        Method method = Method.start("somename");
+        MethodInvocation method = MethodInvocation.start("somename");
         method.stop();
-        Method method2 = Method.start("somename");
+        MethodInvocation method2 = MethodInvocation.start("somename");
         method2.stop();
 
-        Registry.report();
+        Registry.report(System.out);
     }
 
 }
