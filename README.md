@@ -1,9 +1,10 @@
 # perfix
-poor man's profiling for JVM's
+Pretty basic profiling tool for JVM's
 
 * agent that instruments loaded classes: -javaagent:perfix.jar
-* skip instrumentation with -Dperfix.excludes=java,com,org ...etc
-* shutdown hook to report executed methods:
+* include classes for instrumentation with -Dperfix.includes=com.project. ...etc (includes subpackages)
+* telnet interface to report executed methods:
 <br/> * #invocations
-<br/> * total execution time for the method in nanoseconds
-<br/> * average time in nanoseconds per method (= total/#invocatons)
+<br/> * total execution time for the method in nanoseconds (this is also the sorting order)
+<br/> * average time in nanoseconds per method (= total/#invocations)
+* The server starts on port 2048 by default. Use -Dperfix.port=... to adjust.
