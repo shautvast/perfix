@@ -23,7 +23,7 @@ Pretty basic profiling tool for JVM's
 
 
 # roadmap
-* Finish jdbc query logging
+* Finish jdbc query recording (CallableStatement)
 * Make output format configurable
 * Implement password login (now any)
 * Add web interface (maybe)
