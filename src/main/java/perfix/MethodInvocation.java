@@ -13,13 +13,16 @@ public class MethodInvocation {
     public static MethodInvocation start(String name) {
         return new MethodInvocation(name);
     }
+    public static void stop(MethodInvocation methodInvocation) {
+        methodInvocation.stop();
+    }
 
     public void stop() {
         t1 = System.nanoTime();
         Registry.add(this);
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 

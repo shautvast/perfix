@@ -5,31 +5,49 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Start me with -javaagent:target/agent-0.1-SNAPSHOT.jar -Dperfix.includes=testperfix");
-        System.out.println("Then start putty (or other telnet client) and telnet to localhost:2048");
+        System.out.println("Perfix Test Application is running. Make sure the agent is active.");
+        String includesProperty = System.getProperty("perfix.includes");
+        if (includesProperty == null || !includesProperty.equals("testperfix")) {
+            System.out.println("Start me with -javaagent:target/agent-0.1-SNAPSHOT.jar -Dperfix.includes=testperfix");
+
+            System.out.println("Exiting now");
+            System.exit(0);
+        }
+        System.out.println("Now start ssh session on localhost on port 2048 (without closing the Test Application)");
         run();
     }
 
-    public static void run() {
-        someJdbcMethod();
-        someOtherMethod();
+    private static void run() {
         try {
+            Class.forName("org.h2.Driver");
+            someJdbcStatentMethod();
+            someJdbcPreparedStatementMethod();
+            someOtherMethod();
             TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void someJdbcMethod() {
+    private static void someJdbcStatentMethod() {
         try {
-            Class.forName("org.h2.Driver");
             Connection connection = DriverManager.getConnection("jdbc:h2:mem:default", "sa", "");
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select CURRENT_DATE()");
-            while (resultSet.next()){
-                System.out.println("today is "+resultSet.getObject(1));
-            }
-        } catch (ClassNotFoundException | SQLException e) {
+            statement.executeQuery("select CURRENT_DATE() -- simple statement");
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void someJdbcPreparedStatementMethod() {
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:h2:mem:default", "sa", "");
+
+            PreparedStatement preparedStatement = connection.prepareStatement("select CURRENT_DATE() -- prepared statement");
+            preparedStatement.executeQuery();
+            connection.close();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

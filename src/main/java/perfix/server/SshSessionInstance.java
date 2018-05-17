@@ -11,35 +11,31 @@ import java.io.PrintStream;
 
 public class SshSessionInstance implements Command, Runnable {
 
-    private static final String ANSI_LOCAL_ECHO = "\u001B[12l";
     private static final String ANSI_NEWLINE_CRLF = "\u001B[20h";
 
-    private InputStream is;
-    private OutputStream os;
-
+    private InputStream input;
+    private OutputStream output;
     private ExitCallback callback;
-    private Thread sshThread;
 
     @Override
     public void start(Environment env) {
-        sshThread = new Thread(this, "EchoShell");
-        sshThread.start();
+        new Thread(this, "PerfixShell").start();
     }
 
     @Override
     public void run() {
         try {
-            os.write("press [enter] for report or [q] to quit\n".getBytes());
-            os.write((ANSI_LOCAL_ECHO + ANSI_NEWLINE_CRLF).getBytes());
-            os.flush();
+            output.write("press [enter] for report or [q] to quit\n".getBytes());
+            output.write((ANSI_NEWLINE_CRLF).getBytes());
+            output.flush();
 
             boolean exit = false;
             while (!exit) {
-                char c = (char) is.read();
+                char c = (char) input.read();
                 if (c == 'q') {
                     exit = true;
                 } else if (c == '\n') {
-                    Registry.report(new PrintStream(os));
+                    Registry.report(new PrintStream(output));
                 }
             }
         } catch (Exception e) {
@@ -50,9 +46,7 @@ public class SshSessionInstance implements Command, Runnable {
     }
 
     @Override
-    public void destroy() {
-        sshThread.interrupt();
-    }
+    public void destroy() {    }
 
     @Override
     public void setErrorStream(OutputStream errOS) {
@@ -65,12 +59,12 @@ public class SshSessionInstance implements Command, Runnable {
 
     @Override
     public void setInputStream(InputStream is) {
-        this.is = is;
+        this.input = is;
     }
 
     @Override
     public void setOutputStream(OutputStream os) {
-        this.os = os;
+        this.output = os;
     }
 
 }

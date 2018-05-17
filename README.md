@@ -1,15 +1,32 @@
 # perfix
 Pretty basic profiling tool for JVM's
 
-* agent that instruments loaded classes: -javaagent:perfix.jar
-* include classes for instrumentation with -Dperfix.includes=com.project. ...etc (includes subpackages)
-* ssh interface to report executed methods:
+# Highlights:
+* Meant for development time (after process stops, data is gone). 
+* Minimal memory footprint (agent is 2.5 mb).
+* Minimalistic commandline interface.
+* Execution time is measured in nanoseconds, reported in milliseconds (this way the totals and averages are most precise, but also human readable).
+* No manual instrumentation necessary using loadtime bytecode manipulation (javassist).
+* No special jdbc configuration necessary (ie no wrapped jdbc driver).
+* The agent is also the server (unlike commercial tooling). This way there is no overhead in interprocess communication.
+
+# Usage
+* Agent that instruments loaded classes: -javaagent:<path>/perfix.jar
+* Include classes for instrumentation with -Dperfix.includes=com.project. ...etc (includes subpackages)
+* Ssh interface to report executed methods and sql query excutions:
 <br/> * #invocations
 <br/> * total execution time for the method in nanoseconds (this is also the sorting order)
 <br/> * average time in nanoseconds per method (= total/#invocations)
-* The server starts on port 2048 by default. Use -Dperfix.port=... to adjust.
+* The (ssh) server starts on port 2048 by default. Use -Dperfix.port=... to adjust.
+
 
 # roadmap
-* finish jdbc query logging
-* make output format configurable
-* implement password login (now any)
+* Overhead (in method execution time) not clear yet. I wouldn't use it in production. 
+* Finish jdbc query logging
+* Make output format configurable
+* Implement password login (now any)
+* Add web interface (maybe)
+* Implement an actual call stack the way commercial tools work
+
+# DISCLAIMER:
+This has only been tested on oracle java8 in spring-boot using tomcat web-container
