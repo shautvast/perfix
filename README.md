@@ -2,7 +2,7 @@
 Pretty basic profiling tool for JVM's
 
 # Highlights:
-* Provides method and SQL statement execution time.
+* Provides method and SQL statement execution time. (Somehow it gives me more info than Java Mission Control)
 * Meant for development time (after process stops, data is gone). 
 * Minimalistic commandline interface (ssh).
 * Execution time is measured in nanoseconds, reported in milliseconds (this way the totals and averages are most precise, but also human readable).
