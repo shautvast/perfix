@@ -9,7 +9,7 @@ Pretty basic profiling tool for JVM's
 * No manual instrumentation necessary using loadtime bytecode manipulation (javassist).
 * No special jdbc configuration necessary (ie no wrapped jdbc driver).
 * The agent is also the server (unlike commercial tooling). This way there is no overhead in interprocess communication.
-* Minimal memory footprint (agent is 2.5 mb).
+* Minimal memory footprint (agent is >only< 2.5 mb, it's still java right?).
 * Overhead (in method execution time) not clear yet. I wouldn't use it in production. 
 
 # Usage
