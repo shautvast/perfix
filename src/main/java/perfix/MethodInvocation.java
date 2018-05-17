@@ -7,12 +7,17 @@ public class MethodInvocation {
 
     private MethodInvocation(String name) {
         t0 = System.nanoTime();
-        this.name = name;
+        if (name != null) {
+            this.name = name;
+        } else {
+            this.name = "<UNKNOWN_BECAUSE_OF_ERROR>";
+        }
     }
 
     public static MethodInvocation start(String name) {
         return new MethodInvocation(name);
     }
+
     public static void stop(MethodInvocation methodInvocation) {
         methodInvocation.stop();
     }
