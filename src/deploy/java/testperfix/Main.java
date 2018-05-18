@@ -13,7 +13,6 @@ public class Main {
             System.out.println("Exiting now");
             System.exit(0);
         }
-        System.out.println("Now start ssh session on localhost on port 2048 (without closing the Test Application)");
         run();
     }
 

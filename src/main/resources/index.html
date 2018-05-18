@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Perfix console</title>
+    <script src="/d3.js"></script>
+    <script src="/perfix.js"></script>
+    <link rel="stylesheet" type="text/css" href="/main.css">
+</head>
+<body class="datagrid">
+<table></table>
+</body>
+<script>
+    d3.json("/report").then(function (data) {
+        // render the table(s)
+        tabulate(data, ['name', 'invocations', 'totalDuration', 'average']);
+    });
+</script>
+</html>

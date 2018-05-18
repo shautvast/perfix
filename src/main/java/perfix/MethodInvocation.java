@@ -10,7 +10,7 @@ public class MethodInvocation {
         if (name != null) {
             this.name = name;
         } else {
-            this.name = "<UNKNOWN_BECAUSE_OF_ERROR>";
+            this.name = "<error occurred>";
         }
     }
 

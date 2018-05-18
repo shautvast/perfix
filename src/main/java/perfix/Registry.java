@@ -17,7 +17,7 @@ public class Registry {
     static void add(MethodInvocation methodInvocation) {
         methods.computeIfAbsent(methodInvocation.getName(), key -> new ArrayList<>()).add(methodInvocation);
     }
-
+    
     public static void report(PrintStream out) {
         out.println(HEADER1);
         out.println(HEADER2);
@@ -29,13 +29,13 @@ public class Registry {
     }
 
     private static String createReportLine(Report report) {
-        return report.name + ";"
-                + report.invocations + ";"
-                + (long) (report.totalDuration / NANO_2_MILLI) + ";"
-                + (long) (report.average() / NANO_2_MILLI);
+        return report.getName() + ";"
+                + report.getInvocations() + ";"
+                + (long) (report.getTotalDuration() / NANO_2_MILLI) + ";"
+                + (long) (report.getAverage() / NANO_2_MILLI);
     }
 
-    private static SortedMap<Long, Report> sortedMethodsByDuration() {
+    public static SortedMap<Long, Report> sortedMethodsByDuration() {
         SortedMap<Long, Report> sortedByTotal = new ConcurrentSkipListMap<>(Comparator.reverseOrder());
         methods.forEach((name, measurements) -> {
             LongAdder totalDuration = new LongAdder();
@@ -47,19 +47,5 @@ public class Registry {
         return sortedByTotal;
     }
 
-    static class Report {
-        final String name;
-        final int invocations;
-        final long totalDuration;
-
-        Report(String name, int invocations, long totalDuration) {
-            this.name = name;
-            this.invocations = invocations;
-            this.totalDuration = totalDuration;
-        }
-
-        double average() {
-            return (double) totalDuration / invocations;
-        }
-    }
+    
 }

@@ -1,9 +1,7 @@
 package perfix;
 
-import javassist.*;
-import perfix.server.SSHServer;
+import perfix.server.HTTPServer;
 
-import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +26,7 @@ public class Agent {
 
         new ClassInstrumentor(determineIncludes()).instrumentCode(inst);
 
-        new SSHServer().startListeningOnSocket(port);
+        new HTTPServer(port).start();
     }
 
     private static List<String> determineIncludes() {

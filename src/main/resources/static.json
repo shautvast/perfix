@@ -1,0 +1,44 @@
+[
+  {
+    "name": "testperfix.Main.main(java.lang.String[])",
+    "invocations": 1,
+    "totalDuration": 1414878875,
+    "average": 1.414878875E9
+  },
+  {
+    "name": "testperfix.Main.run()",
+    "invocations": 1,
+    "totalDuration": 1414756159,
+    "average": 1.414756159E9
+  },
+  {
+    "name": "testperfix.Main.someJdbcStatentMethod()",
+    "invocations": 1,
+    "totalDuration": 399009103,
+    "average": 3.99009103E8
+  },
+  {
+    "name": "select CURRENT_DATE() -- simple statement",
+    "invocations": 1,
+    "totalDuration": 99705675,
+    "average": 9.9705675E7
+  },
+  {
+    "name": "testperfix.Main.someJdbcPreparedStatementMethod()",
+    "invocations": 1,
+    "totalDuration": 5880308,
+    "average": 5880308.0
+  },
+  {
+    "name": "testperfix.Main.someOtherMethod()",
+    "invocations": 1,
+    "totalDuration": 1285359,
+    "average": 1285359.0
+  },
+  {
+    "name": "select CURRENT_DATE() -- prepared statement",
+    "invocations": 1,
+    "totalDuration": 98241,
+    "average": 98241.0
+  }
+]
