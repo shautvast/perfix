@@ -5,7 +5,7 @@ Pretty basic profiling tool for JVM's
 * Meant for development time (after process stops, data is gone). 
 * Minimal memory footprint (agent < 1 mb).
 * Easy setup (2 commandline arguments for java process)
-* Minimalistic web interface (using nanohttpd and d3.js).
+* Minimalistic web interface.
 * Execution time is measured in nanoseconds
 * No manual instrumentation necessary using loadtime bytecode manipulation (javassist).
 * No special jdbc configuration necessary (ie no wrapped jdbc driver).
