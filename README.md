@@ -24,6 +24,7 @@ Pretty basic profiling tool for JVM's
 * Overhead (in method execution time) not clear yet. I wouldn't use it in production. 
 * Finish jdbc query logging (CallableStatement)
 * Implement an actual call stack the way commercial tools work
+* Ability to dynamically turn off metrics to minimize cpu and memory overhead (when response time is below a set treshold)
 
 # DISCLAIMER:
 This has only been tested on oracle java8 in spring-boot using tomcat web-container
