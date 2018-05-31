@@ -1,9 +1,9 @@
-package testperfix;
+package testperfix.cmdline;
 
 import java.sql.*;
 import java.util.concurrent.TimeUnit;
 
-public class Main {
+public class App {
     public static void main(String[] args) {
         System.out.println("Perfix Test Application is running. Make sure the agent is active.");
         String includesProperty = System.getProperty("perfix.includes");

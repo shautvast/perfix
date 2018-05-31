@@ -19,19 +19,22 @@ public class HTTPServer extends NanoHTTPD {
 
         try {
             start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-            System.out.println("\nHttpServer running! Point your browser to http://localhost:2048/ \n");
+            System.out.println(" --- Perfix http server running. Point your browser to http://localhost:" + getListeningPort() + "/");
         } catch (IOException ioe) {
-            System.err.println("Couldn't start server:\n" + ioe);
+            System.err.println(" --- Couldn't start Perfix http server:\n" + ioe);
         }
     }
 
     @Override
     public Response serve(IHTTPSession session) {
         String uri = session.getUri();
-        if (uri.equals("/report")) {
-            return perfixMetrics();
-        } else {
-            return serveStaticContent(uri);
+        switch (uri) {
+            case "/report":
+                return perfixMetrics();
+            case "/callstack":
+                return perfixCallstack();
+            default:
+                return serveStaticContent(uri);
         }
     }
 
@@ -53,6 +56,15 @@ public class HTTPServer extends NanoHTTPD {
     private Response perfixMetrics() {
         try {
             return newFixedLengthResponse(Response.Status.OK, "application/json", Serializer.toJSONString(new ArrayList<>(Registry.sortedMethodsByDuration().values())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return newFixedLengthResponse(e.toString());
+        }
+    }
+
+    private Response perfixCallstack() {
+        try {
+            return newFixedLengthResponse(Response.Status.OK, "application/json", Serializer.toJSONString(Registry.getCallStack()));
         } catch (Exception e) {
             e.printStackTrace();
             return newFixedLengthResponse(e.toString());

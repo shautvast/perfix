@@ -1,5 +1,6 @@
 package perfix;
 
+import perfix.instrument.Instrumentor;
 import perfix.server.HTTPServer;
 
 import java.lang.instrument.Instrumentation;
@@ -16,15 +17,15 @@ public class Agent {
     private static final String INCLUDES_PROPERTY = "perfix.includes";
 
     private static final String DEFAULT_PORT = "2048";
-    private static final String MESSAGE = " --- Perfix agent active --- ";
+    private static final String MESSAGE = " --- Perfix agent active";
 
 
-    public static void premain(String agentArgs, Instrumentation inst) {
+    public static void premain(String agentArgs, Instrumentation instrumentation) {
         System.out.println(MESSAGE);
 
         int port = Integer.parseInt(System.getProperty(PORT_PROPERTY, DEFAULT_PORT));
 
-        new ClassInstrumentor(determineIncludes()).instrumentCode(inst);
+        Instrumentor.create(determineIncludes()).instrumentCode(instrumentation);
 
         new HTTPServer(port).start();
     }

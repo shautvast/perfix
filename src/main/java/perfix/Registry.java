@@ -1,6 +1,5 @@
 package perfix;
 
-import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -9,30 +8,25 @@ import java.util.concurrent.atomic.LongAdder;
 public class Registry {
 
     private static final Map<String, List<MethodInvocation>> methods = new ConcurrentHashMap<>();
-    private static final double NANO_2_MILLI = 1000000D;
-    private static final String HEADER1 = "Invoked methods, by duration desc:";
-    private static final String HEADER2 = "MethodInvocation name;#Invocations;Total duration;Average Duration";
-    private static final String FOOTER = "----------------------------------------";
+    private static final Map<String, Set<String>> callstack = new ConcurrentHashMap<>();
+    private static final ThreadLocal<String> currentMethod = new ThreadLocal<>();
 
-    static void add(MethodInvocation methodInvocation) {
+    @SuppressWarnings("unused")
+    public static MethodInvocation start(String name) {
+        MethodInvocation methodInvocation = new MethodInvocation(name);
+        String parent = currentMethod.get();
+        if (parent != null) {
+            callstack.computeIfAbsent(parent, k -> new HashSet<>()).add(methodInvocation.getName());
+        }
+        currentMethod.set(methodInvocation.getName());
+        return methodInvocation;
+    }
+
+
+    @SuppressWarnings("unused")
+    public static void stop(MethodInvocation methodInvocation) {
+        methodInvocation.t1 = System.nanoTime();
         methods.computeIfAbsent(methodInvocation.getName(), key -> new ArrayList<>()).add(methodInvocation);
-    }
-    
-    public static void report(PrintStream out) {
-        out.println(HEADER1);
-        out.println(HEADER2);
-        sortedMethodsByDuration().entrySet().stream()
-                .map(entry -> createReportLine(entry.getValue()))
-                .forEach(out::println);
-        out.println(FOOTER);
-        out.flush();
-    }
-
-    private static String createReportLine(Report report) {
-        return report.getName() + ";"
-                + report.getInvocations() + ";"
-                + (long) (report.getTotalDuration() / NANO_2_MILLI) + ";"
-                + (long) (report.getAverage() / NANO_2_MILLI);
     }
 
     public static SortedMap<Long, Report> sortedMethodsByDuration() {
@@ -46,6 +40,11 @@ public class Registry {
         });
         return sortedByTotal;
     }
+//work in progress
+//    public static Map<String, Set<Report>> getCallStack() {
+//        callstack.forEach((name,children)->{
+//
+//        });
+//    }
 
-    
 }

@@ -19,6 +19,13 @@
             <artifactId>javassist</artifactId>
             <version>3.21.0-GA</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.nanohttpd</groupId>
+            <artifactId>nanohttpd</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -32,9 +39,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.nanohttpd</groupId> 
-            <artifactId>nanohttpd</artifactId>
-            <version>2.3.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>1.5.3.RELEASE</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -44,9 +52,9 @@
     </properties>
 
     <build>
-        <testSourceDirectory>src/deploy/java</testSourceDirectory>
+        <testSourceDirectory>src/testapp/java</testSourceDirectory>
         <plugins>
-            
+
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
