@@ -40,11 +40,13 @@ public class Registry {
         });
         return sortedByTotal;
     }
-//work in progress
-//    public static Map<String, Set<Report>> getCallStack() {
-//        callstack.forEach((name,children)->{
-//
-//        });
-//    }
+
+    //work in progress
+    public static Map<String, Set<Report>> getCallStack() {
+        callstack.forEach((name, children) -> {
+
+        });
+        return null;
+    }
 
 }

@@ -33,58 +33,34 @@ public class HTTPServer extends NanoHTTPD {
                 return perfixMetrics();
             case "/callstack":
                 return perfixCallstack();
-            default:
-                return serveStaticContent(uri);
-        }
-    }
-
-    private Response serveStaticContent(String uri) {
-        if (uri.equals("/")) {
-            uri = "/index.html";
-        }
-        try {
-            InputStream stream = getClass().getResourceAsStream(uri);
-            if (stream == null) {
-                return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "resource not found");
-            }
-            return newFixedLengthResponse(Response.Status.OK, determineContentType(uri), readFile(stream));
-        } catch (IOException e) {
-            return newFixedLengthResponse(e.toString());
+            default: return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "NOT FOUND");
         }
     }
 
     private Response perfixMetrics() {
         try {
-            return newFixedLengthResponse(Response.Status.OK, "application/json", Serializer.toJSONString(new ArrayList<>(Registry.sortedMethodsByDuration().values())));
+            return addCors(newFixedLengthResponse(Response.Status.OK, "application/json", Serializer.toJSONString(new ArrayList<>(Registry.sortedMethodsByDuration().values()))));
+
+
         } catch (Exception e) {
             e.printStackTrace();
             return newFixedLengthResponse(e.toString());
         }
+    }
+
+    private Response addCors(Response response) {
+        response.addHeader("Access-Control-Allow-Origin","*");
+        response.addHeader("Access-Control-Allow-Headers","Origin, X-Requested-With, Content-Type, Accept");
+        return response;
     }
 
     private Response perfixCallstack() {
         try {
-            return newFixedLengthResponse(Response.Status.OK, "application/json", Serializer.toJSONString(Registry.getCallStack()));
+            return addCors(newFixedLengthResponse(Response.Status.OK, "application/json", Serializer.toJSONString(Registry.getCallStack())));
         } catch (Exception e) {
             e.printStackTrace();
             return newFixedLengthResponse(e.toString());
         }
     }
 
-    private String readFile(InputStream stream) throws IOException {
-        int nbytes = stream.available();
-        byte[] bytes = new byte[nbytes];
-        stream.read(bytes);
-        return new String(bytes);
-    }
-
-    private String determineContentType(String uri) {
-        if (uri.endsWith(".js")) {
-            return "application/javascript";
-        } else if (uri.endsWith(".css")) {
-            return "text/css";
-        } else {
-            return "text/html";
-        }
-    }
 }

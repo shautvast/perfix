@@ -3,7 +3,10 @@ package perfix.instrument;
 import javassist.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 
@@ -22,10 +25,15 @@ public class JdbcInstrumentor extends Instrumentor {
 
     private static final String PERFIX_SQLSTATEMENT_FIELD = "_perfixSqlStatement";
     private static final String PERFIX_SETSQL_METHOD = "setSqlForPerfix";
-
+    private static CtClass statementTextClass = null;
 
     JdbcInstrumentor(List<String> includes, ClassPool classPool) {
         super(includes, classPool);
+        try {
+            statementTextClass = classpool.get("perfix.instrument.StatementText");
+        } catch (NotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /* Need to enhance interface to be able to set a statement (string) for perfix. */
@@ -33,17 +41,20 @@ public class JdbcInstrumentor extends Instrumentor {
         try {
             preparedStatementInterface.getDeclaredMethod(PERFIX_SETSQL_METHOD);
         } catch (NotFoundException e1) {
+            e1.printStackTrace();
             try {
                 CtMethod setSqlForPerfix = new CtMethod(CtClass.voidType, PERFIX_SETSQL_METHOD, new CtClass[]{stringClass}, preparedStatementInterface);
                 preparedStatementInterface.addMethod(setSqlForPerfix);
 
             } catch (CannotCompileException e2) {
+                e2.printStackTrace();
                 return uninstrumentedByteCode;
             }
         }
         try {
             return bytecode(preparedStatementInterface);
         } catch (CannotCompileException | IOException e) {
+            e.printStackTrace();
             return uninstrumentedByteCode;
         }
     }
@@ -79,6 +90,7 @@ public class JdbcInstrumentor extends Instrumentor {
             return bytecode(classToInstrument);
         } catch (NotFoundException | CannotCompileException | IOException e) {
             // suppress
+            e.printStackTrace();
         }
         return uninstrumentedByteCode;
     }
@@ -86,29 +98,73 @@ public class JdbcInstrumentor extends Instrumentor {
     /* */
     byte[] instrumentJdbcPreparedStatementImpl(CtClass preparedStatementClass, byte[] uninstrumentedByteCode) {
         try {
-            addPerfixStatementField(preparedStatementClass);
+            addPerfixFields(preparedStatementClass);
             addPerfixStatementSetter(preparedStatementClass);
 
             // instrument execute to record query duration
             stream(preparedStatementClass.getDeclaredMethods(JAVASQL_EXECUTE_METHOD)).forEach(method ->
-                    instrumentMethod(method, PERFIX_SQLSTATEMENT_FIELD)
+                    instrumentMethod(method, PERFIX_SQLSTATEMENT_FIELD + ".toString()")
             );
 
             // instrument executeQuery to record query duration
             stream(preparedStatementClass.getDeclaredMethods(JAVASQL_EXECUTEQUERY_METHOD)).forEach(method ->
-                    instrumentMethod(method, PERFIX_SQLSTATEMENT_FIELD)
+                    instrumentMethod(method, PERFIX_SQLSTATEMENT_FIELD + ".toString()")
             );
 
             // instrument executeUpdate to record query duration
             stream(preparedStatementClass.getDeclaredMethods(JAVASQL_EXECUTEUPDATE_METHOD)).forEach(method ->
-                    instrumentMethod(method, PERFIX_SQLSTATEMENT_FIELD)
+                    instrumentMethod(method, PERFIX_SQLSTATEMENT_FIELD + ".toString()")
             );
+
+            getDeclaredMethods(preparedStatementClass, "setString", "setObject", "setDate", "setTime", "setTimestamp")
+                    .forEach(method -> {
+                                try {
+                                    method.insertBefore(PERFIX_SQLSTATEMENT_FIELD + ".set($1, \"\'\"+$2+\"\'\");");
+                                } catch (CannotCompileException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                    );
+            getDeclaredMethods(preparedStatementClass,
+                    "setInt", "setFloat", "setDouble", "setBoolean", "setLong", "setShort")
+                    .forEach(method -> {
+                                try {
+                                    method.insertBefore(PERFIX_SQLSTATEMENT_FIELD + ".set($1, $2);");
+                                } catch (CannotCompileException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                    );
+            getDeclaredMethods(preparedStatementClass, "setNull")
+                    .forEach(method -> {
+                                try {
+                                    method.insertBefore(PERFIX_SQLSTATEMENT_FIELD + ".set($1, \"[NULL]\");");
+                                } catch (CannotCompileException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                    );
 
             return bytecode(preparedStatementClass);
         } catch (NotFoundException | CannotCompileException | IOException e) {
             e.printStackTrace();
             return uninstrumentedByteCode;
         }
+    }
+
+    private Stream<CtMethod> getDeclaredMethods(CtClass preparedStatementClass, String... methodnames) {
+        List<CtMethod> methods = new ArrayList<>();
+        for (String methodname : methodnames) {
+            try {
+                methods.addAll(Arrays.asList(preparedStatementClass.getDeclaredMethods(methodname)));
+
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        }
+
+        return methods.stream();
     }
 
 
@@ -124,14 +180,15 @@ public class JdbcInstrumentor extends Instrumentor {
             );
             return bytecode(classToInstrument);
         } catch (Exception e) {
+            e.printStackTrace();
             return uninstrumentedByteCode;
         }
 
     }
 
-    private void addPerfixStatementField(CtClass preparedStatementClass) throws CannotCompileException {
+    private void addPerfixFields(CtClass preparedStatementClass) throws CannotCompileException, NotFoundException {
         // add a String field that will contain the statement
-        CtField perfixSqlField = new CtField(stringClass, PERFIX_SQLSTATEMENT_FIELD, preparedStatementClass);
+        CtField perfixSqlField = new CtField(statementTextClass, PERFIX_SQLSTATEMENT_FIELD, preparedStatementClass);
         perfixSqlField.setModifiers(Modifier.PRIVATE);
         preparedStatementClass.addField(perfixSqlField);
     }
@@ -140,7 +197,7 @@ public class JdbcInstrumentor extends Instrumentor {
         // add setter for the new field
         CtMethod setSqlForPerfix = new CtMethod(CtClass.voidType, PERFIX_SETSQL_METHOD, new CtClass[]{stringClass}, preparedStatementImplClass);
         setSqlForPerfix.setModifiers(Modifier.PUBLIC);
-        setSqlForPerfix.setBody(PERFIX_SQLSTATEMENT_FIELD + "=" + JAVASSIST_FIRST_ARGUMENT_NAME + ";");
+        setSqlForPerfix.setBody(PERFIX_SQLSTATEMENT_FIELD + "= new perfix.instrument.StatementText(" + JAVASSIST_FIRST_ARGUMENT_NAME + ");");
         preparedStatementImplClass.addMethod(setSqlForPerfix);
     }
 

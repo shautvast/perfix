@@ -42,8 +42,11 @@ public class App {
     private static void someJdbcPreparedStatementMethod() {
         try {
             Connection connection = DriverManager.getConnection("jdbc:h2:mem:default", "sa", "");
-
-            PreparedStatement preparedStatement = connection.prepareStatement("select CURRENT_DATE() -- prepared statement");
+            Statement statement = connection.createStatement();
+            statement.execute("create table t (v varchar(2))");
+            statement.close();
+            PreparedStatement preparedStatement = connection.prepareStatement("select * from t where v=? -- prepared statement");
+            preparedStatement.setDate(1, new Date(new java.util.Date().getTime()));
             preparedStatement.executeQuery();
             connection.close();
         } catch (SQLException e) {

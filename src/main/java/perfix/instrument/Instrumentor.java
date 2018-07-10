@@ -8,23 +8,28 @@ import java.util.List;
 
 public abstract class Instrumentor {
     static final String JAVA_STRING = "java.lang.String";
+    static final String JAVA_HASHMAP = "java.util.HashMap";
     static final String PERFIX_METHODINVOCATION_CLASS = "perfix.MethodInvocation";
     static final String JAVASSIST_FIRST_ARGUMENT_NAME = "$1";
     static final String JAVASSIST_RETURNVALUE = "$_";
 
     final ClassPool classpool;
     final List<String> includes;
-    CtClass perfixMethodInvocationClass;
-    CtClass stringClass;
+    protected CtClass stringClass;
+    protected CtClass hashMapClass;
+    protected CtClass perfixMethodInvocationClass;
 
     Instrumentor(List<String> includes, ClassPool classPool) {
         this.includes = includes;
         this.classpool = classPool;
+
         try {
             perfixMethodInvocationClass = getCtClass(PERFIX_METHODINVOCATION_CLASS);
             stringClass = classpool.get(JAVA_STRING);
+            hashMapClass = classPool.get(JAVA_HASHMAP);
 
         } catch (NotFoundException e) {
+            e.printStackTrace();
             //suppress TODO implement trace
         }
     }
@@ -37,7 +42,8 @@ public abstract class Instrumentor {
         return classInstrumentor;
     }
 
-    public void instrumentCode(Instrumentation inst){}
+    public void instrumentCode(Instrumentation inst) {
+    }
 
     void instrumentMethod(CtMethod methodToinstrument) {
         instrumentMethod(methodToinstrument, "\"" + methodToinstrument.getLongName() + "\"");

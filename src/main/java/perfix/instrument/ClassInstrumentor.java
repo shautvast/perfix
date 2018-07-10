@@ -7,7 +7,9 @@ import javassist.NotFoundException;
 import perfix.MutableBoolean;
 
 import java.io.IOException;
+import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.security.ProtectionDomain;
 import java.util.List;
 
 import static java.util.Arrays.stream;
@@ -30,9 +32,14 @@ public class ClassInstrumentor extends Instrumentor {
         }
     }
 
+    @Override
     public void instrumentCode(Instrumentation inst) {
-        inst.addTransformer((classLoader, resource, aClass, protectionDomain, uninstrumentedByteCode)
-                -> instrumentCodeForClass(includes, resource, uninstrumentedByteCode));
+        inst.addTransformer(new ClassFileTransformer() {
+            @Override
+            public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+                return instrumentCodeForClass(includes, className, classfileBuffer);
+            }
+        });
     }
 
     private byte[] instrumentCodeForClass(List<String> includes, String resource, byte[] uninstrumentedByteCode) {
@@ -40,10 +47,10 @@ public class ClassInstrumentor extends Instrumentor {
             try {
                 CtClass ctClass = getCtClassForResource(resource);
 
-                if (servletInstrumentor.isServletImpl(resource)){
+                if (servletInstrumentor.isServletImpl(resource)) {
                     return servletInstrumentor.instrumentServlet(ctClass, uninstrumentedByteCode);
                 }
-                
+
                 if (jdbcInstrumentor.isJdbcStatementImpl(resource, ctClass)) {
                     return jdbcInstrumentor.instrumentJdbcStatement(ctClass, uninstrumentedByteCode);
                 }
