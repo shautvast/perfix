@@ -9,7 +9,7 @@ Pretty basic profiling tool for JVM's
 * Execution time is measured in nanoseconds
 * No manual instrumentation necessary using loadtime bytecode manipulation (javassist).
 * No special jdbc configuration necessary (ie no wrapped jdbc driver).
-* The agent is also the server (unlike commercial tooling). This way there is no overhead in interprocess communication.
+* The agent is also the server (ui backend). 
 
 # Usage
 * Agent that instruments loaded classes: -javaagent:<path>/perfix.jar
@@ -18,7 +18,8 @@ Pretty basic profiling tool for JVM's
 <br/> * #invocations
 <br/> * total execution time for the method in nanoseconds (this is also the sorting order)
 <br/> * average time in nanoseconds per method (= total/#invocations)
-* The http server starts on port 2048 by default. Use -Dperfix.port=... to adjust.
+* The backend starts on port 2048 by default. Use -Dperfix.port=... to adjust.
+* Start the UI using npm install followed by npm start. the UI starts on port 3000 by default.
 
 
 # roadmap
@@ -26,6 +27,7 @@ Pretty basic profiling tool for JVM's
 * Finish jdbc query logging (CallableStatement)
 * Implement an actual call stack the way commercial tools work
 * Ability to dynamically turn off metrics to minimize cpu and memory overhead (when response time is below a set treshold)
+* extend the user interface
 
 # DISCLAIMER:
 This has only been tested on oracle java8 in spring-boot using tomcat web-container
