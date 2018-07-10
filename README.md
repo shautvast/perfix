@@ -1,6 +1,8 @@
 # perfix
 Pretty basic profiling tool for JVM's
 
+![screenshot](https://github.com/shautvast/perfix/blob/master/screenshot.png)
+
 # Highlights:
 * Meant for development time (after process stops, data is gone). 
 * Minimal memory footprint (agent < 1 mb).
