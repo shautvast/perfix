@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import axios from 'axios';
 
-class App extends Component {
+class List extends Component {
   state = {
     data: []
   }
@@ -21,7 +21,7 @@ class App extends Component {
   render() {
     return (
       <div className="datagrid">
-        <button type="button" onClick={() => this.loadData()}>refresh</button>
+        <h1>List view</h1>
         <table>
           <thead><tr><th>name</th><th>invocations</th><th>totalDuration</th><th>average</th></tr></thead>
           <tbody>
@@ -35,4 +35,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default List;

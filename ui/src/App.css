@@ -1,3 +1,54 @@
+body {
+  background:white;
+  font: normal 12px/150% Arial, Helvetica, sans-serif;
+  padding:5px;
+}
+
+.view{
+  padding: 10px;
+  border: 1px solid #006699;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+/**
+ * Framework starts from here ...
+ * ------------------------------
+ */
+
+.tree,
+.tree ul {
+  margin:0 0 0 1em; /* indentation */
+  padding:0;
+  list-style:none;
+  color:#369;
+  position:relative;
+}
+
+.tree ul {margin-left:.5em} /* (indentation/2) */
+
+.tree:before,
+.tree ul:before {
+  content:"";
+  display:block;
+  width:0;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  border-left:1px solid;
+}
+
+.tree li {
+  margin:0;
+  padding:0 1.5em; /* indentation + .5em */
+  line-height:2em; /* default list item's `line-height` */
+  position:relative;
+  color: #000;
+}
+
+
 .datagrid table {
   border-collapse: collapse;
   text-align: left;
@@ -5,9 +56,9 @@
 }
 
 .datagrid {
+  padding: 10px;
   font: normal 12px/150% Arial, Helvetica, sans-serif;
   background: #fff;
-  overflow: hidden;
   border: 1px solid #006699;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -19,14 +70,7 @@
 }
 
 .datagrid table thead th {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F));
-  background: -moz-linear-gradient(center top, #006699 5%, #00557F 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#00557F');
-  background-color: #006699;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: bold;
-  border-left: 1px solid #0070A8;
+  
 }
 
 .datagrid table thead th:first-child {
