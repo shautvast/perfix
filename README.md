@@ -5,7 +5,7 @@ Pretty basic profiling tool for JVM's
 
 # Highlights:
 * Meant for development time (after process stops, data is gone). 
-* Minimal memory footprint (agent < 1 mb).
+* Minimal memory footprint (agent ~ 1 mb).
 * Easy setup (2 commandline arguments for java process)
 * Minimalistic web interface.
 * Execution time is measured in nanoseconds
@@ -31,4 +31,4 @@ Pretty basic profiling tool for JVM's
 * extend the user interface
 
 # DISCLAIMER:
-This has only been tested on oracle java8 in spring-boot using tomcat web-container
+This has only been tested on oracle java8 in spring-boot using tomcat web-container (and apache dbcp)
