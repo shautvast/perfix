@@ -7,8 +7,8 @@ public class StatementTextTest {
     @Test
     public void testReplace(){
         StatementText b = new StatementText("select ? from ?");
-        b.set(1, "alpha");
-        b.set(2, "beta");
+        StatementText.set(b,1, "alpha");
+        StatementText.set(b,2, "beta");
         Assert.assertEquals("select alpha from beta",b.toString());
     }
 }

@@ -12,47 +12,62 @@ public class StatementText {
         this.sql = new StringBuilder(sql);
     }
 
-    public void set(int index, Object value) {
-        if (index < 1 || index > vars.length + 1) {
-            throw new IndexOutOfBoundsException("" + index);
+
+    public static void set(StatementText statementText, int index, Object value) {
+        if (statementText != null) {
+            if (index < 1 || index > statementText.vars.length + 1) {
+                throw new IndexOutOfBoundsException("" + index);
+            }
+            statementText.vars[index - 1] = value;
+        } else {
+            if (statementText!=null){
+                System.out.println(statementText);
+            } else {
+                System.out.println("null");
+            }
         }
-        vars[index - 1] = value;
     }
 
-    public void set(int index, int value){
-        set(index, Integer.toString(value));
+    @SuppressWarnings("unused") //used in generated code
+    public static String toString(StatementText statementText) {
+        return statementText != null ? statementText.toString() : "[none]";
     }
 
-    public void set(int index, long value){
-        set(index, Long.toString(value));
+    public static void set(StatementText statementText, int index, int value) {
+        set(statementText, index, Integer.toString(value));
     }
 
-    public void set(int index, double value){
-        set(index, Double.toString(value));
+    public static void set(StatementText statementText, int index, long value) {
+        set(statementText, index, Long.toString(value));
     }
 
-    public void set(int index, boolean value){
-        set(index, Boolean.toString(value));
+    public static void set(StatementText statementText, int index, double value) {
+        set(statementText, index, Double.toString(value));
     }
 
-    public void set(int index, float value){
-        set(index, Float.toString(value));
+    public static void set(StatementText statementText, int index, boolean value) {
+        set(statementText, index, Boolean.toString(value));
     }
 
-    public void set(int index, short value){
-        set(index, Short.toString(value));
+    public static void set(StatementText statementText, int index, float value) {
+        set(statementText, index, Float.toString(value));
+    }
+
+    public static void set(StatementText statementText, int index, short value) {
+        set(statementText, index, Short.toString(value));
     }
 
     @Override
     public String toString() {
+        StringBuilder output=new StringBuilder(sql);
         int found = 0;
         for (int i = 0; i < sql.length(); i++) {
-            if (sql.charAt(i) == BOUNDVAR_MARK) {
-                sql.deleteCharAt(i);
-                sql.insert(i, vars[found++]);
+            if (output.charAt(i) == BOUNDVAR_MARK) {
+                output.deleteCharAt(i);
+                output.insert(i, vars[found++]);
             }
         }
-        return sql.toString();
+        return output.toString();
     }
 
     private int countVars(String sql) {

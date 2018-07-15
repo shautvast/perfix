@@ -1,5 +1,7 @@
 package testperfix.cmdline;
 
+import org.apache.commons.dbcp2.BasicDataSource;
+
 import java.sql.*;
 import java.util.concurrent.TimeUnit;
 
@@ -18,8 +20,7 @@ public class App {
 
     private static void run() {
         try {
-            Class.forName("org.h2.Driver");
-            someJdbcStatentMethod();
+            someJdbcStatementMethod();
             someJdbcPreparedStatementMethod();
             someOtherMethod();
             TimeUnit.SECONDS.sleep(1);
@@ -28,9 +29,15 @@ public class App {
         }
     }
 
-    private static void someJdbcStatentMethod() {
+    private static void someJdbcStatementMethod() {
         try {
-            Connection connection = DriverManager.getConnection("jdbc:h2:mem:default", "sa", "");
+            BasicDataSource dataSource=new BasicDataSource();
+            dataSource.setDriverClassName("org.h2.Driver");
+            dataSource.setUrl("jdbc:h2:mem:default");
+            dataSource.setUsername("sa");
+            dataSource.setPassword("");
+
+            Connection connection = dataSource.getConnection();
             Statement statement = connection.createStatement();
             statement.executeQuery("select CURRENT_DATE() -- simple statement");
             connection.close();

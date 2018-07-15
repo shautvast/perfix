@@ -40,8 +40,6 @@ public class HTTPServer extends NanoHTTPD {
     private Response perfixMetrics() {
         try {
             return addCors(newFixedLengthResponse(Response.Status.OK, "application/json", Serializer.toJSONString(new ArrayList<>(Registry.sortedMethodsByDuration().values()))));
-
-
         } catch (Exception e) {
             e.printStackTrace();
             return newFixedLengthResponse(e.toString());

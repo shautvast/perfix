@@ -60,6 +60,31 @@ public abstract class Instrumentor {
         }
     }
 
+    /* record times at beginning and end of sql call
+     * sql calls are special in the sense that certain jdbc connection pool implementations
+     * create a nested chain of jdbc statement implementations, resulting in too many reported
+     * (measured) calls if not handled in a way to prevent this */
+    void instrumentJdbcCall(CtMethod methodToinstrument, String metricName) {
+        try {
+            methodToinstrument.addLocalVariable("_perfixmethod", perfixMethodInvocationClass);
+            methodToinstrument.insertBefore("_perfixmethod = perfix.Registry.startJdbc(" + metricName + ");");
+            methodToinstrument.insertAfter("perfix.Registry.stopJdbc(_perfixmethod);");
+        } catch (CannotCompileException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /* record times at beginning and end of method body*/
+    void instrumentJdbcCall(CtMethod methodToinstrument) {
+        try {
+            methodToinstrument.addLocalVariable("_perfixmethod", perfixMethodInvocationClass);
+            methodToinstrument.insertBefore("_perfixmethod = perfix.Registry.startJdbc(perfix.instrument.StatementText.toString(_perfixSqlStatement));");
+            methodToinstrument.insertAfter("perfix.Registry.stopJdbc(_perfixmethod);");
+        } catch (CannotCompileException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     byte[] bytecode(CtClass classToInstrument) throws IOException, CannotCompileException {
         classToInstrument.detach();
         return classToInstrument.toBytecode();
