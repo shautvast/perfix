@@ -26,7 +26,7 @@ class List extends Component {
           <thead><tr><th>name</th><th>invocations</th><th>totalDuration</th><th>average</th></tr></thead>
           <tbody>
             {this.state.data.map(datum =>
-              <tr key={datum.name}><td>{datum.name}</td><td>{datum.invocations}</td><td>{datum.totalDuration}</td><td>{datum.average}</td></tr>
+              <tr key={datum.name}><td>{datum.name}</td><td>{datum.invocations}</td><td>{Math.floor(datum.totalDuration/1000)/1000}</td><td>{Math.floor(datum.average/1000)/1000}</td></tr>
             )}
           </tbody>
         </table>

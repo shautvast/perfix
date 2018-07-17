@@ -1,7 +1,7 @@
 body {
   background:white;
   font: normal 12px/150% Arial, Helvetica, sans-serif;
-  padding:5px;
+  padding:2px;
 }
 
 .view{
@@ -12,42 +12,72 @@ body {
   border-radius: 3px;
 }
 
-/**
- * Framework starts from here ...
- * ------------------------------
- */
-
-.tree,
-.tree ul {
+.tree, .tree ul {
   margin:0 0 0 1em; /* indentation */
   padding:0;
   list-style:none;
   color:#369;
   position:relative;
+  left:0px;
 }
 
-.tree ul {margin-left:.5em} /* (indentation/2) */
+.treeView{
+  position: relative;
+  left:-20px;
+}
 
-.tree:before,
-.tree ul:before {
+
+
+.tree li input ~ ul{
+  display: none;
+  height: 0;
+}
+/*
+.tree input  {
+  background: url(toggle-small-expand.png) no-repeat;
+  height: 1em;
+
+
+	content: "\00a0\00a0\00a0"; 
+	overflow: hidden;
+	width: 16px;
+	height: 16px;
+}
+
+.tree input:checked{
+  background: url(toggle-small.png) no-repeat;
+}*/
+
+.tree li input:checked ~ ul{
+  display: inline;
+}
+  
+/* .tree li input:checked  { display: block; margin: 0 0 0.125em;  2px} */
+/* .tree li input:checked  li:last-child { margin: 0 0 0.063em; 1px } */
+    
+.tree ul {margin-left:1em} /* (indentation/2) */
+
+.tree li:before {
   content:"";
   display:block;
-  width:0;
+  width:10px; /* same with indentation */
+  height:0;
+  border-top:1px solid;
+  margin-top:-3px; /* border top width */
   position:absolute;
-  top:0;
-  bottom:0;
-  left:0;
-  border-left:1px solid;
+  top:1em; /* (line-height/2) */
+  left:px;
 }
 
 .tree li {
-  margin:0;
-  padding:0 1.5em; /* indentation + .5em */
-  line-height:2em; /* default list item's `line-height` */
-  position:relative;
-  color: #000;
+  border-left:1px solid;
+  margin-left: -3px;
+  padding: 0 0em; /* indentation + .5em */
+  line-height: 1.5em; /* default list item's `line-height` */
+  position: relative;
+  color: #00496B;
+  left:20px;
 }
-
 
 .datagrid table {
   border-collapse: collapse;
@@ -69,15 +99,11 @@ body {
   padding: 3px 10px;
 }
 
-.datagrid table thead th {
-  
-}
-
 .datagrid table thead th:first-child {
   border: none;
 }
 
-.datagrid table tbody td {
+.datagrid table tbody tr {
   color: #00496B;
   border-left: 1px solid #E1EEF4;
   font-size: 12px;
@@ -86,7 +112,6 @@ body {
 
 .datagrid table tbody .alt td {
   background: #E1EEF4;
-  color: #00496B;
 }
 
 .datagrid table tbody td:first-child {
@@ -122,22 +147,7 @@ body {
   display: inline;
 }
 
-.datagrid table tfoot li a {
-  text-decoration: none;
-  display: inline-block;
-  padding: 2px 8px;
-  margin: 1px;
-  color: #FFFFFF;
-  border: 1px solid #006699;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F));
-  background: -moz-linear-gradient(center top, #006699 5%, #00557F 100%);
-  background-color: #006699;
-}
-
-.datagrid table tfoot ul.active, .datagrid table tfoot ul a:hover {
+.datagrid tbody tr:hover {
   text-decoration: none;
   border-color: #006699;
   color: #FFFFFF;

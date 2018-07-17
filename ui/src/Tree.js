@@ -18,7 +18,7 @@ class Tree extends Component {
         return (<ul className="tree">
             {children.map(
                 r =>
-                    <li>
+                    <li><input type="checkbox" className="tree"></input>
                         {Math.floor(r.report.average / 1000) / 1000} ms &nbsp;
                         - {r.report.invocations} inv. &nbsp;
                         {r.report.name}
@@ -32,11 +32,13 @@ class Tree extends Component {
         return (
             <div>
                 <div className="view"><h1>Callstack view</h1>
-                    {/* <button type="button" onClick={this.loadData()}> refresh </button> */}
-                    {this.renderChildren(this.state.data)}
+                    <div className="treeView">
+                        {/* <button type="button" onClick={this.loadData()}> refresh </button> */}
+                        {this.renderChildren(this.state.data)}
+                    </div>
                 </div>
                 <p/>
-                <List/>
+                <List />
             </div>
         )
     }
