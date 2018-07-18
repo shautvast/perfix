@@ -10,11 +10,12 @@ class Tree extends Component {
     }
 
     loadData() {
+        console.log(this);
         axios.get("http://localhost:2048/callstack")
             .then(response => this.setState({ data: response.data }));
     }
 
-    clear() {
+    clearData() {
         axios.get("http://localhost:2048/clear")
             .then(response => this.setState({ data: response.data }));
     }
@@ -36,8 +37,8 @@ class Tree extends Component {
     render() {
         return (
             <div>
-                <button type="button" onClick={this.clear}>clear</button>
-                <button type="button" onClick={this.loadData}>refresh</button>
+                <button type="button" onClick={() => this.clearData()}>clear</button>
+                <button type="button" onClick={() => this.loadData()}>refresh</button>
                 <div className="view"><h1>Callstack view</h1>
                     <div className="treeView">
                         {this.renderChildren(this.state.data)}
