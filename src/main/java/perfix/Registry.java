@@ -88,4 +88,8 @@ public class Registry {
         });
     }
 
+    public static void clear() {
+        methods.clear();
+        callstack.clear();
+    }
 }
