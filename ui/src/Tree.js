@@ -24,10 +24,9 @@ class Tree extends Component {
         return (<ul className="tree">
             {children.map(
                 r =>
-                    <li key={r.report.name}><input type="checkbox" className="tree"></input>
-                        {Math.floor(r.report.average / 1000) / 1000} ms &nbsp;
-                        - {r.report.invocations} inv. &nbsp;
-                        {r.report.name}
+                    <li key={r.name}><input type="checkbox" className="tree"/>
+                        {Math.floor(r.invocation.duration / 1000) / 1000} ms &nbsp;
+                        {r.name}
                         {this.renderChildren(r.children)}
                     </li>
             )}

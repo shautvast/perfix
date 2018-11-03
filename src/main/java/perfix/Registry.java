@@ -5,11 +5,9 @@ import perfix.instrument.Util;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.atomic.LongAdder;
 
 public class Registry {
 
-    private static final Map<String, List<MethodInvocation>> methods = new ConcurrentHashMap<>();
     private static final List<MethodNode> callstack = new ArrayList<>();
     private static final ThreadLocal<MethodNode> currentMethod = new ThreadLocal<>();
 
@@ -26,7 +24,7 @@ public class Registry {
     @SuppressWarnings("unused")
     public static MethodInvocation start(String name) {
         MethodInvocation methodInvocation = new MethodInvocation(name);
-        MethodNode newNode = new MethodNode(methodInvocation.getName());
+        MethodNode newNode = new MethodNode(name);
 
         MethodNode parent = currentMethod.get();
         if (parent != null) {
@@ -52,44 +50,43 @@ public class Registry {
     @SuppressWarnings("unused")
     public static void stop(MethodInvocation methodInvocation) {
         if (methodInvocation != null) {
-            methodInvocation.t1 = System.nanoTime();
-            methods.computeIfAbsent(methodInvocation.getName(), key -> new ArrayList<>()).add(methodInvocation);
+            methodInvocation.registerEndingTime(System.nanoTime());
         }
         MethodNode methodNode = currentMethod.get();
-        if (methodNode != null) {
-            currentMethod.set(methodNode.parent);
-        }
+        methodNode.setInvocation(methodInvocation);
+
+        currentMethod.set(methodNode.parent);
     }
 
     public static SortedMap<Long, Report> sortedMethodsByDuration() {
+        //walk the stack to group methods by their name
+        Map<String, List<MethodInvocation>> methods = new ConcurrentHashMap<>();
+        collectInvocationsPerMethodName(methods, callstack);
+
+        //gather invocations by method name and calculate statistics
         SortedMap<Long, Report> sortedByTotal = new ConcurrentSkipListMap<>(Comparator.reverseOrder());
         methods.forEach((name, measurements) -> {
-            LongAdder totalDuration = new LongAdder();
-            measurements.stream()
+            long totalDuration = measurements.stream()
                     .filter(Objects::nonNull)
-                    .forEach(m -> totalDuration.add(m.getDuration()));
-            sortedByTotal.put(totalDuration.longValue(), new Report(name, measurements.size(), totalDuration.longValue()));
+                    .mapToLong(MethodInvocation::getDuration).sum();
+            sortedByTotal.put(totalDuration, new Report(name, measurements.size(), totalDuration));
         });
         return sortedByTotal;
     }
 
+    private static void collectInvocationsPerMethodName(Map<String, List<MethodInvocation>> invocations, List<MethodNode> nodes) {
+        nodes.forEach(methodNode -> {
+            invocations.computeIfAbsent(methodNode.getName(), key -> new ArrayList<>()).add(methodNode.getInvocation());
+            collectInvocationsPerMethodName(invocations, methodNode.children);
+        });
+
+    }
+
     public static List<MethodNode> getCallStack() {
-        addReport(callstack);
         return callstack;
     }
 
-    private static void addReport(List<MethodNode> callstack) {
-        callstack.forEach(methodNode -> {
-            LongAdder totalDuration = new LongAdder();
-            List<MethodInvocation> methodInvocations = methods.get(methodNode.name);
-            methodInvocations.forEach(methodInvocation -> totalDuration.add(methodInvocation.getDuration()));
-            methodNode.report = new Report(methodNode.name, methodInvocations.size(), totalDuration.longValue());
-            addReport(methodNode.children);
-        });
-    }
-
     public static void clear() {
-        methods.clear();
         callstack.clear();
     }
 }

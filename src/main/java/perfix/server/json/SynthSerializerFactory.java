@@ -102,7 +102,7 @@ public class SynthSerializerFactory implements SerializerFactory {
     /*
      * Creates the source, handling the for JSON different types of classes
      */
-    private <T> String createToJSONStringMethodSource(CtClass beanClass) throws NotFoundException {
+    private String createToJSONStringMethodSource(CtClass beanClass) throws NotFoundException {
         String source = "public String handle(Object object){\n";
         if (beanClass.isArray()) {
             source += "\tObject[] array=(Object[])object;\n";
@@ -191,14 +191,10 @@ public class SynthSerializerFactory implements SerializerFactory {
     }
 
     private boolean isCollection(CtClass beanClass) throws NotFoundException {
-        List<CtClass> interfaces = new ArrayList<CtClass>(asList(beanClass.getInterfaces()));
+        List<CtClass> interfaces = new ArrayList<>(asList(beanClass.getInterfaces()));
         interfaces.add(beanClass);
-        for (CtClass interfaze : interfaces) {
-            if (interfaze.getName().equals(COLLECTION) || interfaze.getName().equals(LIST) || interfaze.getName().equals(SET)) {
-                return true;
-            }
-        }
-        return false;
+        boolean is = interfaces.stream().anyMatch(interfaze -> interfaze.getName().equals(COLLECTION) || interfaze.getName().equals(LIST) || interfaze.getName().equals(SET));
+        return is;
     }
 
     private boolean isMap(CtClass beanClass) throws NotFoundException {
@@ -212,7 +208,7 @@ public class SynthSerializerFactory implements SerializerFactory {
      */
     private String addPair(CtClass classToSerialize, String source, CtMethod getter) throws NotFoundException {
         source += jsonKey(getter);
-        source += ": "; // what is the rule when it comes to spaces in json?
+        source += ":";
         source += jsonValue(classToSerialize, getter);
         return source;
     }

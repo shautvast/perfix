@@ -26,35 +26,15 @@ body {
   left:-20px;
 }
 
-
-
 .tree li input ~ ul{
   display: none;
   height: 0;
 }
-/*
-.tree input  {
-  background: url(toggle-small-expand.png) no-repeat;
-  height: 1em;
-
-
-	content: "\00a0\00a0\00a0"; 
-	overflow: hidden;
-	width: 16px;
-	height: 16px;
-}
-
-.tree input:checked{
-  background: url(toggle-small.png) no-repeat;
-}*/
 
 .tree li input:checked ~ ul{
   display: inline;
 }
-  
-/* .tree li input:checked  { display: block; margin: 0 0 0.125em;  2px} */
-/* .tree li input:checked  li:last-child { margin: 0 0 0.063em; 1px } */
-    
+
 .tree ul {margin-left:1em} /* (indentation/2) */
 
 .tree li:before {

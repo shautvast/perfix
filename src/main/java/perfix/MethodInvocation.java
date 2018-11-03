@@ -4,25 +4,19 @@ package perfix;
  * contains start and stop time for method/query/servlet
  */
 public class MethodInvocation {
-    private final long t0;
-    private final String name;
-    long t1;
+    private final long timestamp;
+    long duration;
 
     MethodInvocation(String name) {
-        t0 = System.nanoTime();
-        if (name != null) {
-            this.name = name;
-        } else {
-            this.name = "<error occurred>";
-        }
+        timestamp = System.nanoTime();
+
     }
 
-    String getName() {
-        return name;
+    public long getDuration() {
+        return duration;
     }
 
-    long getDuration() {
-        return t1 - t0;
+    public void registerEndingTime(long t1) {
+        duration = t1 - timestamp;
     }
-
 }

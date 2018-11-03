@@ -8,23 +8,19 @@ public class MethodNode {
     public final String name;
     public final List<MethodNode> children;
     public MethodNode parent;
-    public Report report;
+    private MethodInvocation invocation;
 
     public MethodNode(String name) {
         this.name = name;
         this.children = new ArrayList<>();
     }
 
-    public void addChild(MethodNode child){
+    public void addChild(MethodNode child) {
         children.add(child);
     }
 
     public String getName() {
         return name;
-    }
-
-    public Report getReport() {
-        return report;
     }
 
     public List<MethodNode> getChildren() {
@@ -51,5 +47,11 @@ public class MethodNode {
         return Objects.hash(name);
     }
 
+    public MethodInvocation getInvocation() {
+        return invocation;
+    }
 
+    public void setInvocation(MethodInvocation invocation) {
+        this.invocation = invocation;
+    }
 }

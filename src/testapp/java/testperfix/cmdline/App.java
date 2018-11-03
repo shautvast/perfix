@@ -22,7 +22,7 @@ public class App {
         try {
             someJdbcStatementMethod();
             someJdbcPreparedStatementMethod();
-            someOtherMethod();
+            someOtherMethod(0);
             TimeUnit.SECONDS.sleep(1);
         } catch (Exception e) {
             e.printStackTrace();
@@ -31,7 +31,7 @@ public class App {
 
     private static void someJdbcStatementMethod() {
         try {
-            BasicDataSource dataSource=new BasicDataSource();
+            BasicDataSource dataSource = new BasicDataSource();
             dataSource.setDriverClassName("org.h2.Driver");
             dataSource.setUrl("jdbc:h2:mem:default");
             dataSource.setUsername("sa");
@@ -61,11 +61,15 @@ public class App {
         }
     }
 
-    private static void someOtherMethod() {
+    private static void someOtherMethod(int level) {
         try {
             TimeUnit.NANOSECONDS.sleep(1);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+
+        if (level < 1000) {
+            someOtherMethod(level + 1);
         }
     }
 }
