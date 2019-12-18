@@ -1,5 +1,5 @@
 .DS_Store
 .idea/
-perfix.iml
+*.iml
 target/
 ui/node_modules
