@@ -189,7 +189,7 @@ public class JdbcInstrumentor extends Instrumentor {
     }
 
     boolean isJdbcPreparedStatementImpl(String resource, CtClass ctClass) throws NotFoundException {
-        if (!resource.startsWith("java/sql")) {
+        if (!ctClass.isInterface() && !resource.startsWith("java/sql")) {
             return stream(ctClass.getInterfaces())
                     .anyMatch(i -> i.getName().equals("java.sql.PreparedStatement"));
         }
@@ -197,7 +197,7 @@ public class JdbcInstrumentor extends Instrumentor {
     }
 
     boolean isJdbcConnectionImpl(String resource, CtClass ctClass) throws NotFoundException {
-        if (!resource.startsWith("java/sql")) {
+        if (!ctClass.isInterface() && !resource.startsWith("java/sql")) {
             return stream(ctClass.getInterfaces())
                     .anyMatch(i -> i.getName().equals("java.sql.Connection"));
         }
