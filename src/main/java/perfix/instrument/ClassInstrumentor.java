@@ -24,7 +24,6 @@ public class ClassInstrumentor extends Instrumentor {
     ClassInstrumentor(List<String> includes, ClassPool classPool) {
         super(includes, classPool);
         try {
-            perfixMethodInvocationClass = getCtClass(PERFIX_METHODINVOCATION_CLASS);
             stringClass = classpool.get(JAVA_STRING);
 
         } catch (NotFoundException e) {

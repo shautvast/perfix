@@ -28,7 +28,7 @@ public class JdbcInstrumentor extends Instrumentor {
         try {
             preparedStatementInterface.getDeclaredMethod("setSqlForPerfix");
         } catch (NotFoundException e1) {
-            e1.printStackTrace();
+//            e1.printStackTrace();
             try {
                 CtMethod setSqlForPerfix = new CtMethod(CtClass.voidType, "setSqlForPerfix", new CtClass[]{stringClass}, preparedStatementInterface);
                 preparedStatementInterface.addMethod(setSqlForPerfix);
@@ -94,7 +94,7 @@ public class JdbcInstrumentor extends Instrumentor {
             getDeclaredMethods(preparedStatementClass, "setString", "setObject", "setDate", "setTime", "setTimestamp")
                     .forEach(method -> {
                                 try {
-                                    method.insertBefore("perfix.instrument.StatementText.set(_perfixSqlStatement,$1, \"\'\"+$2+\"\'\");");
+                                    method.insertBefore("perfix.instrument.StatementText.set(_perfixSqlStatement,$1, \"'\"+$2+\"'\");");
                                 } catch (CannotCompileException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -161,7 +161,7 @@ public class JdbcInstrumentor extends Instrumentor {
 
     }
 
-    private void addPerfixFields(CtClass preparedStatementClass) throws CannotCompileException, NotFoundException {
+    private void addPerfixFields(CtClass preparedStatementClass) throws CannotCompileException {
         // add a String field that will contain the statement
         CtField perfixSqlField = new CtField(statementTextClass, "_perfixSqlStatement", preparedStatementClass);
         perfixSqlField.setModifiers(Modifier.PRIVATE);

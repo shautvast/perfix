@@ -1,30 +1,29 @@
 package perfix;
 
-import java.util.ArrayList;
-import java.util.List;
+
 import java.util.Objects;
 
 public class MethodNode {
-    public final String name;
-    public final List<MethodNode> children;
-    public MethodNode parent;
-    private MethodInvocation invocation;
+    private final String name;
+    private final long timestamp;
+    private final String threadName;
+    private MethodNode parent;
+    private long duration;
+    private long invocationid;
+
 
     public MethodNode(String name) {
         this.name = name;
-        this.children = new ArrayList<>();
-    }
-
-    public void addChild(MethodNode child) {
-        children.add(child);
+        this.timestamp = System.nanoTime();
+        this.threadName = Thread.currentThread().getName();
     }
 
     public String getName() {
         return name;
     }
 
-    public List<MethodNode> getChildren() {
-        return children;
+    public long getId() {
+        return Objects.hash(Thread.currentThread().getId(), timestamp);
     }
 
     @Override
@@ -47,11 +46,47 @@ public class MethodNode {
         return Objects.hash(name);
     }
 
-    public MethodInvocation getInvocation() {
-        return invocation;
+    public long getParentId() {
+        if (parent == null) {
+            return 0;
+        } else {
+            return parent.getId();
+        }
     }
 
-    public void setInvocation(MethodInvocation invocation) {
-        this.invocation = invocation;
+    public long getDuration() {
+        return duration;
+    }
+
+    public void registerEndingTime(long t1) {
+        duration = t1 - timestamp;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public MethodNode getParent() {
+        return parent;
+    }
+
+    public void setParent(MethodNode parent) {
+        this.parent = parent;
+    }
+
+    public String getThreadName() {
+        return threadName;
+    }
+
+    public void setInvocationId(long invocationid) {
+        this.invocationid = invocationid;
+    }
+
+    public long getInvocationId() {
+        if (parent != null) {
+            return parent.getInvocationId();
+        } else {
+            return getId();
+        }
     }
 }

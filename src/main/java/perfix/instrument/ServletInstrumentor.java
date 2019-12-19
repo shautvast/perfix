@@ -26,11 +26,10 @@ public class ServletInstrumentor extends Instrumentor {
         try {
             stream(classToInstrument.getDeclaredMethods(JAVA_SERVLET_SERVICE_METHOD)).forEach(methodToInstrument -> {
                 try {
-                    methodToInstrument.addLocalVariable("_perfixmethod", perfixMethodInvocationClass);
-                    methodToInstrument.insertBefore("_perfixmethod = perfix.Registry.start($1.getRequestURI());");
-                    methodToInstrument.insertAfter("perfix.Registry.stop(_perfixmethod);");
+                    methodToInstrument.insertBefore("perfix.Registry.start($1.getRequestURI());");
+                    methodToInstrument.insertAfter("perfix.Registry.stop();");
                 } catch (CannotCompileException e) {
-
+                    // ignore and return uninstrumented bytecode
                 }
             });
             return bytecode(classToInstrument);
