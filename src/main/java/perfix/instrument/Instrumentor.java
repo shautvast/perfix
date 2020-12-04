@@ -9,6 +9,7 @@ import java.util.List;
 public abstract class Instrumentor {
     static final String JAVA_STRING = "java.lang.String";
     static final String JAVA_HASHMAP = "java.util.HashMap";
+    static final String PERFIX_METHODINVOCATION_CLASS = "perfix.MethodInvocation";
     static final String JAVASSIST_FIRST_ARGUMENT_NAME = "$1";
     static final String JAVASSIST_RETURNVALUE = "$_";
 
@@ -16,12 +17,14 @@ public abstract class Instrumentor {
     final List<String> includes;
     protected CtClass stringClass;
     protected CtClass hashMapClass;
+    protected CtClass perfixMethodInvocationClass;
 
     Instrumentor(List<String> includes, ClassPool classPool) {
         this.includes = includes;
         this.classpool = classPool;
 
         try {
+            perfixMethodInvocationClass = getCtClass(PERFIX_METHODINVOCATION_CLASS);
             stringClass = classpool.get(JAVA_STRING);
             hashMapClass = classPool.get(JAVA_HASHMAP);
 
@@ -49,8 +52,9 @@ public abstract class Instrumentor {
     /* record times at beginning and end of method body*/
     void instrumentMethod(CtMethod methodToinstrument, String metricName) {
         try {
-            methodToinstrument.insertBefore("perfix.Registry.start(" + metricName + ");");
-            methodToinstrument.insertAfter("perfix.Registry.stop();");
+            methodToinstrument.addLocalVariable("_perfixmethod", perfixMethodInvocationClass);
+            methodToinstrument.insertBefore("_perfixmethod = perfix.Registry.start(" + metricName + ");");
+            methodToinstrument.insertAfter("perfix.Registry.stop(_perfixmethod);");
         } catch (CannotCompileException e) {
             throw new RuntimeException(e);
         }
@@ -62,8 +66,9 @@ public abstract class Instrumentor {
      * (measured) calls if not handled in a way to prevent this */
     void instrumentJdbcCall(CtMethod methodToinstrument, String metricName) {
         try {
-            methodToinstrument.insertBefore("perfix.Registry.startJdbc(" + metricName + ");");
-            methodToinstrument.insertAfter("perfix.Registry.stopJdbc();");
+            methodToinstrument.addLocalVariable("_perfixmethod", perfixMethodInvocationClass);
+            methodToinstrument.insertBefore("_perfixmethod = perfix.Registry.startJdbc(" + metricName + ");");
+            methodToinstrument.insertAfter("perfix.Registry.stopJdbc(_perfixmethod);");
         } catch (CannotCompileException e) {
             throw new RuntimeException(e);
         }
@@ -72,8 +77,9 @@ public abstract class Instrumentor {
     /* record times at beginning and end of method body*/
     void instrumentJdbcCall(CtMethod methodToinstrument) {
         try {
-            methodToinstrument.insertBefore("perfix.Registry.startJdbc(perfix.instrument.StatementText.toString(_perfixSqlStatement));");
-            methodToinstrument.insertAfter("perfix.Registry.stopJdbc();");
+            methodToinstrument.addLocalVariable("_perfixmethod", perfixMethodInvocationClass);
+            methodToinstrument.insertBefore("_perfixmethod = perfix.Registry.startJdbc(perfix.instrument.StatementText.toString(_perfixSqlStatement));");
+            methodToinstrument.insertAfter("perfix.Registry.stopJdbc(_perfixmethod);");
         } catch (CannotCompileException e) {
             throw new RuntimeException(e);
         }

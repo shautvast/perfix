@@ -2,65 +2,17 @@ package perfix;
 
 import perfix.instrument.Util;
 
-import java.sql.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
-/**
- * Handles start and stop of method invocations. Measures method/sql/url invocations. Stores individual measurements in sqlite.
- */
-@SuppressWarnings("unused") //used from instrumented bytecode
 public class Registry {
 
+    private static final List<MethodNode> callstack = new ArrayList<>();
     private static final ThreadLocal<MethodNode> currentMethod = new ThreadLocal<>();
-    private static final String INSERT_REPORT = "insert into report (thread, id, parent_id, invocation_id, timestamp, name, duration) values (?,?,?,?,?,?,?)";
-    private static final String CREATE_TABLE = "create table report(thread varchar(255), id int, parent_id int, invocation_id int, timestamp int, name varchar(255), duration integer)";
-    private static final String SElECT_TABLE = "SELECT name FROM sqlite_master WHERE type='table' AND name='report';";
 
-    private static BlockingQueue<MethodNode> queue = new LinkedBlockingQueue<>();
-    private static Connection connection;
-
-    static {
-        initWorker();
-        initDatabase();
-    }
-
-    private static void initWorker() {
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
-        executorService.submit(() -> {
-            while (true) {
-                MethodNode methodNode = queue.take();
-
-                store(methodNode);
-            }
-        });
-    }
-
-    private static void initDatabase() {
-        try {
-            connection = DriverManager.getConnection("jdbc:sqlite:" + getSqliteFile());
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(SElECT_TABLE);
-            if (!resultSet.next()) {
-                statement.execute(CREATE_TABLE);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static String getSqliteFile() {
-        String dbFileName = System.getProperty(Agent.DBFILE_PROPERTY);
-        if (dbFileName == null) {
-            return Agent.DEFAULT_DBFILE;
-        } else {
-            return dbFileName;
-        }
-    }
-
-    public static MethodNode startJdbc(String name) {
+    @SuppressWarnings("unused") //used in generated code
+    public static MethodInvocation startJdbc(String name) {
         if (!Util.isFirstExecutionStarted()) {
             Util.startExecution();
             return start(name);
@@ -69,54 +21,72 @@ public class Registry {
         }
     }
 
-    public static MethodNode start(String name) {
+    @SuppressWarnings("unused")
+    public static MethodInvocation start(String name) {
+        MethodInvocation methodInvocation = new MethodInvocation(name);
         MethodNode newNode = new MethodNode(name);
 
         MethodNode parent = currentMethod.get();
         if (parent != null) {
-            newNode.setParent(parent);
-            newNode.setInvocationId(parent.getInvocationId());
+            parent.addChild(newNode);
+            newNode.parent = parent;
+        } else {
+            callstack.add(newNode);
         }
 
         currentMethod.set(newNode);
-        return newNode;
+        return methodInvocation;
     }
 
 
     @SuppressWarnings("unused")
-    public static void stopJdbc() {
-        MethodNode current = currentMethod.get();
-        if (Util.isFirstExecutionStarted() && current != null) {
-            stop();
+    public static void stopJdbc(MethodInvocation queryInvocation) {
+        if (Util.isFirstExecutionStarted() && queryInvocation != null) {
+            stop(queryInvocation);
             Util.endExecution();
         }
     }
 
     @SuppressWarnings("unused")
-    public static void stop() {
-        MethodNode current = currentMethod.get();
-        if (current != null) {
-            current.registerEndingTime(System.nanoTime());
-            queue.add(current);
-            currentMethod.set(current.getParent());
+    public static void stop(MethodInvocation methodInvocation) {
+        if (methodInvocation != null) {
+            methodInvocation.registerEndingTime(System.nanoTime());
         }
+        MethodNode methodNode = currentMethod.get();
+        methodNode.setInvocation(methodInvocation);
+
+        currentMethod.set(methodNode.parent);
     }
 
-    private static void store(MethodNode methodNode) {
-        try {
-            PreparedStatement statement = connection.prepareStatement(INSERT_REPORT);
-            statement.setString(1, methodNode.getThreadName());
-            statement.setLong(2, methodNode.getId());
-            statement.setLong(3, methodNode.getParentId());
-            statement.setLong(4, methodNode.getInvocationId());
-            statement.setLong(5, methodNode.getTimestamp());
-            statement.setString(6, methodNode.getName());
-            statement.setLong(7, methodNode.getDuration());
-            statement.executeUpdate();
-            statement.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+    public static SortedMap<Long, Report> sortedMethodsByDuration() {
+        //walk the stack to group methods by their name
+        Map<String, List<MethodInvocation>> methods = new ConcurrentHashMap<>();
+        collectInvocationsPerMethodName(methods, callstack);
+
+        //gather invocations by method name and calculate statistics
+        SortedMap<Long, Report> sortedByTotal = new ConcurrentSkipListMap<>(Comparator.reverseOrder());
+        methods.forEach((name, measurements) -> {
+            long totalDuration = measurements.stream()
+                    .filter(Objects::nonNull)
+                    .mapToLong(MethodInvocation::getDuration).sum();
+            sortedByTotal.put(totalDuration, new Report(name, measurements.size(), totalDuration));
+        });
+        return sortedByTotal;
+    }
+
+    private static void collectInvocationsPerMethodName(Map<String, List<MethodInvocation>> invocations, List<MethodNode> nodes) {
+        nodes.forEach(methodNode -> {
+            invocations.computeIfAbsent(methodNode.getName(), key -> new ArrayList<>()).add(methodNode.getInvocation());
+            collectInvocationsPerMethodName(invocations, methodNode.children);
+        });
+
+    }
+
+    public static List<MethodNode> getCallStack() {
+        return callstack;
+    }
+
+    public static void clear() {
+        callstack.clear();
     }
 }
