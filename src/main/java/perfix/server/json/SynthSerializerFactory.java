@@ -29,7 +29,6 @@ public class SynthSerializerFactory implements SerializerFactory {
     private static final String ROOT_PACKAGE = "serializer.";
 
     private final ClassPool pool = ClassPool.getDefault();
-    private final Map<String, CtClass> primitiveWrappers = new HashMap<String, CtClass>();
     private CtClass serializerBase;
 
     SynthSerializerFactory() {
@@ -43,15 +42,6 @@ public class SynthSerializerFactory implements SerializerFactory {
     void init() {
         try {
             serializerBase = pool.get(JSONSerializer.class.getName());
-
-            primitiveWrappers.put("int", pool.get(INTEGER));
-            primitiveWrappers.put("short", pool.get(SHORT));
-            primitiveWrappers.put("byte", pool.get(BYTE));
-            primitiveWrappers.put("long", pool.get(LONG));
-            primitiveWrappers.put("float", pool.get(FLOAT));
-            primitiveWrappers.put("double", pool.get(DOUBLE));
-            primitiveWrappers.put("boolean", pool.get(BOOLEAN));
-            primitiveWrappers.put("char", pool.get(CHARACTER));
         } catch (NotFoundException e) {
             throw new SerializerCreationException(e);
         }
@@ -74,13 +64,12 @@ public class SynthSerializerFactory implements SerializerFactory {
         }
         try {
             return tryCreateSerializer(beanClass);
-        } catch (NotFoundException | CannotCompileException | InstantiationException | IllegalAccessException e) {
+        } catch (NotFoundException | CannotCompileException | ReflectiveOperationException e) {
             throw new SerializerCreationException(e);
         }
     }
 
-    private <T> JSONSerializer<T> tryCreateSerializer(CtClass beanClass) throws NotFoundException, CannotCompileException, InstantiationException,
-            IllegalAccessException {
+    private <T> JSONSerializer<T> tryCreateSerializer(CtClass beanClass) throws NotFoundException, CannotCompileException, ReflectiveOperationException {
         CtClass serializerClass = pool.makeClass(createSerializerName(beanClass), serializerBase);
 
         addToJsonStringMethod(beanClass, serializerClass);
@@ -172,9 +161,8 @@ public class SynthSerializerFactory implements SerializerFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> JSONSerializer<T> createSerializerInstance(CtClass serializerClass) throws InstantiationException, IllegalAccessException,
-            CannotCompileException {
-        return (JSONSerializer<T>) serializerClass.toClass().newInstance();
+    private <T> JSONSerializer<T> createSerializerInstance(CtClass serializerClass) throws CannotCompileException, ReflectiveOperationException {
+        return (JSONSerializer<T>) serializerClass.toClass().getConstructor().newInstance();
     }
 
     /*
