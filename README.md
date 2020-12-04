@@ -32,3 +32,5 @@ Pretty basic profiling tool for JVM's
 
 # DISCLAIMER:
 This has only been tested on oracle java8 in spring-boot using tomcat web-container (and apache dbcp)
+
+That said I should mention that the callstack view is pretty slow, which is caused by the gui, not the backend. I guess I'll replace it with a static vanilla.js app. 
