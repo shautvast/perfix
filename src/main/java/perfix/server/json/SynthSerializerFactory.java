@@ -3,8 +3,11 @@ package perfix.server.json;
 import javassist.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
 
 public class SynthSerializerFactory implements SerializerFactory {
     private static final String STRING = "java.lang.String";
@@ -17,15 +20,15 @@ public class SynthSerializerFactory implements SerializerFactory {
     private static final String SHORT = "java.lang.Short";
     private static final String INTEGER = "java.lang.Integer";
 
-    private final static Set<String> wrappersAndString = new HashSet<String>(asList(BOOLEAN, CHARACTER, BYTE, DOUBLE, FLOAT, LONG, SHORT, INTEGER,
-            STRING));
+    private final static Set<String> wrappersAndString = unmodifiableSet(new HashSet<String>(asList(BOOLEAN, CHARACTER, BYTE, DOUBLE, FLOAT, LONG, SHORT, INTEGER,
+            STRING)));
 
     private static final String COLLECTION = "java.util.Collection";
     private static final String LIST = "java.util.List";
     private static final String SET = "java.util.Set";
-    private static final List<String> mapInterfaces = asList("java.util.Map", "java.util.concurrent.ConcurrentHashMap");
+    private static final List<String> mapInterfaces = Collections.unmodifiableList(asList("java.util.Map", "java.util.concurrent.ConcurrentHashMap"));
 
-    private static final Map<String, JSONSerializer<?>> serializers = new HashMap<>();
+    private static final ConcurrentMap<String, JSONSerializer<?>> serializers = new ConcurrentHashMap<>();
     private static final String ROOT_PACKAGE = "serializer.";
 
     private final ClassPool pool = ClassPool.getDefault();
@@ -47,43 +50,31 @@ public class SynthSerializerFactory implements SerializerFactory {
         }
     }
 
-    public <T> JSONSerializer<T> createSerializer(Class<T> beanjavaClass) {
-        try {
-            CtClass beanClass = pool.get(beanjavaClass.getName());
-
-            return createSerializer(beanClass);
-        } catch (NotFoundException e) {
-            throw new SerializerCreationException(e);
-        }
-    }
 
     @SuppressWarnings("unchecked")
-    private <T> JSONSerializer<T> createSerializer(CtClass beanClass) {
-        if (serializers.containsKey(createSerializerName(beanClass))) {
-            return (JSONSerializer<T>) serializers.get(createSerializerName(beanClass));
-        }
-        try {
-            return tryCreateSerializer(beanClass);
-        } catch (NotFoundException | CannotCompileException | ReflectiveOperationException e) {
-            throw new SerializerCreationException(e);
-        }
-    }
+    public <T> JSONSerializer<T> createSerializer(Class<T> beanjavaClass) {
+        String serializerName = createSerializerName(beanjavaClass);
+        return (JSONSerializer<T>) serializers.computeIfAbsent(serializerName, key -> {
+            try {
+                CtClass beanClass = pool.get(beanjavaClass.getName());
+                CtClass serializerClass = pool.makeClass(serializerName, serializerBase);
 
-    private <T> JSONSerializer<T> tryCreateSerializer(CtClass beanClass) throws NotFoundException, CannotCompileException, ReflectiveOperationException {
-        CtClass serializerClass = pool.makeClass(createSerializerName(beanClass), serializerBase);
+                addToJsonStringMethod(beanClass, serializerClass);
 
-        addToJsonStringMethod(beanClass, serializerClass);
+                return createSerializerInstance(serializerClass);
 
-        JSONSerializer<T> jsonSerializer = createSerializerInstance(serializerClass);
-
-        serializers.put(createSerializerName(beanClass), jsonSerializer);
-        return jsonSerializer;
+            } catch (NotFoundException | CannotCompileException | ReflectiveOperationException e) {
+                e.printStackTrace();
+                throw new SerializerCreationException(e);
+            }
+        });
     }
 
     /*
      * create method source, compile it and add it to the class under construction
      */
-    private void addToJsonStringMethod(CtClass beanClass, CtClass serializerClass) throws NotFoundException, CannotCompileException {
+    private void addToJsonStringMethod(CtClass beanClass, CtClass serializerClass) throws
+            NotFoundException, CannotCompileException {
         String body = createToJSONStringMethodSource(beanClass);
         serializerClass.addMethod(CtNewMethod.make(body, serializerClass));
     }
@@ -146,7 +137,8 @@ public class SynthSerializerFactory implements SerializerFactory {
     /*
      * If the class contains fields for which public getters are available, then these will be called in the generated code.
      */
-    private String addGetterCallers(CtClass beanClass, String source, List<CtMethod> getters) throws NotFoundException {
+    private String addGetterCallers(CtClass beanClass, String source, List<CtMethod> getters) throws
+            NotFoundException {
         int index = 0;
         source += "\treturn ";
         source += "\"{";
@@ -161,8 +153,9 @@ public class SynthSerializerFactory implements SerializerFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> JSONSerializer<T> createSerializerInstance(CtClass serializerClass) throws CannotCompileException, ReflectiveOperationException {
-        return (JSONSerializer<T>) serializerClass.toClass().getConstructor().newInstance();
+    private <T> JSONSerializer<T> createSerializerInstance(CtClass serializerClass) throws
+            CannotCompileException, ReflectiveOperationException {
+        return (JSONSerializer<T>) pool.toClass(serializerClass).getConstructor().newInstance();
     }
 
     /*
@@ -170,25 +163,30 @@ public class SynthSerializerFactory implements SerializerFactory {
      *
      * Array marks ( '[]' ) are replaced by the 'Array', Otherwise the SerializerClassName would be syntactically incorrect
      */
-    public String createSerializerName(CtClass beanClass) {
+    public String createSerializerName(Class<?> beanClass) {
         return createSerializerName(beanClass.getName());
     }
 
     public String createSerializerName(String name) {
-        return ROOT_PACKAGE + name.replaceAll("\\[\\]", "Array") + "Serializer";
+        return ROOT_PACKAGE + name.replaceAll("\\[]", "Array") + "Serializer";
     }
 
     private boolean isCollection(CtClass beanClass) throws NotFoundException {
         List<CtClass> interfaces = new ArrayList<>(asList(beanClass.getInterfaces()));
         interfaces.add(beanClass);
-        boolean is = interfaces.stream().anyMatch(interfaze -> interfaze.getName().equals(COLLECTION) || interfaze.getName().equals(LIST) || interfaze.getName().equals(SET));
-        return is;
+        return interfaces.stream()
+                .map(CtClass::getName)
+                .anyMatch(interfaze -> interfaze.equals(COLLECTION) || interfaze.equals(LIST) || interfaze.equals(SET));
     }
 
     private boolean isMap(CtClass beanClass) throws NotFoundException {
-        List<CtClass> interfaces = new ArrayList<>(asList(beanClass.getInterfaces()));
-        interfaces.add(beanClass);
-        return interfaces.stream().anyMatch(i -> mapInterfaces.contains(i.getName()));
+        if (mapInterfaces.contains(beanClass.getName())) {
+            return true;
+        } else {
+            return Arrays.stream(beanClass.getInterfaces())
+                    .map(CtClass::getName)
+                    .anyMatch(mapInterfaces::contains);
+        }
     }
 
     /*
@@ -218,7 +216,8 @@ public class SynthSerializerFactory implements SerializerFactory {
         return source;
     }
 
-    private String createSubSerializerForReturnTypeAndAddInvocationToSource(CtClass classToSerialize, CtMethod getter, String source, CtClass returnType) {
+    private String createSubSerializerForReturnTypeAndAddInvocationToSource(CtClass classToSerialize, CtMethod
+            getter, String source, CtClass returnType) {
         /* NB there does not seem to be auto(un))boxing nor generic types (or other jdk1.5 stuff) in javassist compileable code */
 
         source += "\"+" + Serializer.class.getName() + ".toJSONString(";

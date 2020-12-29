@@ -33,4 +33,14 @@ Pretty basic profiling tool for JVM's
 # DISCLAIMER:
 This has only been tested on oracle java8 in spring-boot using tomcat web-container (and apache dbcp)
 
-That said I should mention that the callstack view is pretty slow, which is caused by the gui, not the backend. I guess I'll replace it with a static vanilla.js app. 
+Javassist raises the following error:
+```
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by javassist.util.proxy.SecurityActions (file:/Users/Shautvast/.m2/repository/org/javassist/javassist/3.26.0-GA/javassist-3.26.0-GA.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain)
+WARNING: Please consider reporting this to the maintainers of javassist.util.proxy.SecurityActions
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+```
+But it works at least up until java 15.
+
+I cannot fix this issue, but I'm working to replace javassist as a dependency.

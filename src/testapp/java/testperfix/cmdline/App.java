@@ -68,7 +68,7 @@ public class App {
             e.printStackTrace();
         }
 
-        if (level < 1000) {
+        if (level < 10) {
             someOtherMethod(level + 1);
         }
     }

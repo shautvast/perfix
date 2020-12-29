@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfix</title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/tree.css">
+</head>
+<body>
+<div id="main">
+    <div id="table-view">
+        <h1>List of invocations</h1>
+        <label for="name-filter">filter name </label><input id="name-filter" type="text" onkeyup="update_filter()">
+        <div id="datagrid"></div>
+    </div>
+    <div id="callstack-view">
+        <h1>Callstack</h1>
+        <div id="datatree" class="tree"></div>
+    </div>
+</div>
+
+<script type="application/ecmascript" src="/js/axios.min.js"></script>
+<script type="application/ecmascript" src="/js/app.js"></script>
+</body>
+</html>
