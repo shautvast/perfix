@@ -4,7 +4,6 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
-import perfix.MutableBoolean;
 
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
@@ -94,14 +93,8 @@ public class ClassInstrumentor extends Instrumentor {
         return getCtClass(resource.replaceAll("/", "."));
     }
 
-    private boolean shouldInclude(String resource, List<String> excludes) {
-        MutableBoolean included = new MutableBoolean(false);
-        excludes.forEach(include -> {
-            if (resource.startsWith(include)) {
-                included.set(true);
-            }
-        });
-        return included.get();
+    private boolean shouldInclude(String resource, List<String> includes) {
+        return includes.stream().anyMatch(resource::startsWith);
     }
 
     private boolean isInnerClass(String resource) {

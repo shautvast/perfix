@@ -5,11 +5,14 @@ import javassist.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Logger;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSet;
 
 public class SynthSerializerFactory implements SerializerFactory {
+
+    private static final Logger log = Logger.getLogger("perfix");
     private static final String STRING = "java.lang.String";
     private static final String BOOLEAN = "java.lang.Boolean";
     private static final String CHARACTER = "java.lang.Character";
@@ -64,7 +67,7 @@ public class SynthSerializerFactory implements SerializerFactory {
                 return createSerializerInstance(serializerClass);
 
             } catch (NotFoundException | CannotCompileException | ReflectiveOperationException e) {
-                e.printStackTrace();
+                log.severe(e.toString());
                 throw new SerializerCreationException(e);
             }
         });
@@ -270,24 +273,18 @@ public class SynthSerializerFactory implements SerializerFactory {
     private List<CtField> getAllFields(CtClass beanClass) {
         try {
             List<CtField> allfields = new ArrayList<>();
-            for (CtField field : beanClass.getDeclaredFields()) {
-                allfields.add(field);
-            }
-            if (beanClass.getSuperclass() != null) {
-                return getAllFields(beanClass.getSuperclass(), allfields);
-            }
-            return allfields;
+            return getAllFields(beanClass, allfields);
         } catch (NotFoundException e) {
             throw new SerializerCreationException(e);
         }
 
     }
 
-    private List<CtField> getAllFields(CtClass beanClass, List<CtField> allfields) {
-        for (CtField field : beanClass.getDeclaredFields()) {
-            allfields.add(field);
+    private List<CtField> getAllFields(CtClass beanClass, List<CtField> allfields) throws NotFoundException {
+        allfields.addAll(asList(beanClass.getDeclaredFields()));
+        if (beanClass.getSuperclass() != null) {
+            return getAllFields(beanClass.getSuperclass(), allfields);
         }
-
         return allfields;
     }
 

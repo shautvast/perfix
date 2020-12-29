@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 
 public class JdbcInstrumentor extends Instrumentor {
+    private static final Logger log = Logger.getLogger("perfix");
 
     private static CtClass statementTextClass = null;
 
@@ -41,7 +43,7 @@ public class JdbcInstrumentor extends Instrumentor {
         try {
             return bytecode(preparedStatementInterface);
         } catch (CannotCompileException | IOException e) {
-            e.printStackTrace();
+            log.severe(e.toString());
             return uninstrumentedByteCode;
         }
     }
@@ -69,8 +71,7 @@ public class JdbcInstrumentor extends Instrumentor {
 
                             method.insertAfter("$_.setSqlForPerfix($1);"); //$_ is result instance, $1 is first argument
                         } catch (CannotCompileException | NotFoundException e) {
-                            // suppress
-                            e.printStackTrace();
+                            log.severe(e.toString());
                         }
                     }
             );
@@ -134,7 +135,7 @@ public class JdbcInstrumentor extends Instrumentor {
                 methods.addAll(Arrays.asList(preparedStatementClass.getDeclaredMethods(methodname)));
 
             } catch (NotFoundException e) {
-                e.printStackTrace();
+                log.severe(e.toString());
                 throw new RuntimeException(e);
             }
         }

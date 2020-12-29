@@ -5,8 +5,10 @@ import javassist.*;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.List;
+import java.util.logging.Logger;
 
 public abstract class Instrumentor {
+    private static final Logger log = Logger.getLogger("perfix");
     static final String JAVA_STRING = "java.lang.String";
     static final String JAVA_HASHMAP = "java.util.HashMap";
     static final String PERFIX_METHODINVOCATION_CLASS = "perfix.MethodInvocation";
@@ -29,8 +31,7 @@ public abstract class Instrumentor {
             hashMapClass = classPool.get(JAVA_HASHMAP);
 
         } catch (NotFoundException e) {
-            e.printStackTrace();
-            //suppress TODO implement trace
+            log.severe(e.toString());
         }
     }
 

@@ -28,7 +28,7 @@ public class HTTPServer implements HttpHandler {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress("localhost", port), 0);
             server.createContext("/", this);
-            server.setExecutor(Executors.newFixedThreadPool(2));
+            server.setExecutor(Executors.newFixedThreadPool(3));
             server.start();
             System.out.println(" --- Perfix http server running. Point your browser to http://localhost:" + port + "/");
         } catch (IOException ioe) {

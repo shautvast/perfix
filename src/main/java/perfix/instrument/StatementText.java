@@ -19,12 +19,6 @@ public class StatementText {
                 throw new IndexOutOfBoundsException("" + index);
             }
             statementText.vars[index - 1] = value;
-        } else {
-            if (statementText!=null){
-                System.out.println(statementText);
-            } else {
-                System.out.println("null");
-            }
         }
     }
 
@@ -59,7 +53,7 @@ public class StatementText {
 
     @Override
     public String toString() {
-        StringBuilder output=new StringBuilder(sql);
+        StringBuilder output = new StringBuilder(sql);
         int found = 0;
         for (int i = 0; i < sql.length(); i++) {
             if (output.charAt(i) == BOUNDVAR_MARK) {
