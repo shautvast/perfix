@@ -19,7 +19,7 @@ __Screenshot__
 * copy perfix-agent-$VERSION.jar to <path>/perfix.jar
 * Configure your JVM: -javaagent:<path>/perfix.jar
 * Include classes for instrumentation with -Dperfix.includes=com.project. ...etc (includes subpackages)
-* Head to http://localhost:2048 for reports executed methods and sql query excutions:
+* Head to http://localhost:2048 for reports on executed methods and sql query excutions:
 <br/> * #invocations
 <br/> * total execution time for the method in nanoseconds (this is also the sorting order)
 <br/> * average time in nanoseconds per method (= total/#invocations)
