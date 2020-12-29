@@ -33,7 +33,7 @@ __Screenshot__
 * extend the user interface
 
 # DISCLAIMER:
-This has only been tested on oracle java8 in spring-boot using tomcat web-container (and apache dbcp)
+This has only been tested on oracle java V8-15 in spring-boot using tomcat web-container (and apache dbcp)
 
 Javassist raises the following error:
 ```
