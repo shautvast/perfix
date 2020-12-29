@@ -23,8 +23,7 @@ __Screenshot__
 <br/> * #invocations
 <br/> * total execution time for the method in nanoseconds (this is also the sorting order)
 <br/> * average time in nanoseconds per method (= total/#invocations)
-* The backend starts on port 2048 by default. Use -Dperfix.port=... to adjust.
-* Start the UI using npm install followed by npm start. the UI starts on port 3000 by default.
+* Use -Dperfix.port=... to change the http server port
 
 
 # roadmap
