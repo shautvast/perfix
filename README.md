@@ -6,7 +6,7 @@ __Screenshot__
 
 # Highlights:
 * Meant for development time (after process stops, data is gone). 
-* Minimal memory footprint (agent ~ 900 kb).
+* Minimal memory footprint (829 kb).
 * Easy setup (2 commandline arguments for java process)
 * Minimalistic web interface.
 * Execution time is measured in nanoseconds
