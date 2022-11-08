@@ -50,20 +50,21 @@ public class ClassInstrumentor extends Instrumentor {
                     return servletInstrumentor.instrumentServlet(ctClass, uninstrumentedByteCode);
                 }
 
-                if (jdbcInstrumentor.isJdbcStatementImpl(resource, ctClass)) {
-                    return jdbcInstrumentor.instrumentJdbcStatement(ctClass, uninstrumentedByteCode);
-                }
+//                if (jdbcInstrumentor.isJdbcStatementImpl(resource, ctClass)) {
+//                    return jdbcInstrumentor.instrumentJdbcStatement(ctClass, uninstrumentedByteCode);
+//                }
+//
+//                if (jdbcInstrumentor.isJdbcConnectionImpl(resource, ctClass)) {
+//                    return jdbcInstrumentor.instrumentJdbcConnection(ctClass, uninstrumentedByteCode);
+//                }
 
-                if (jdbcInstrumentor.isJdbcConnectionImpl(resource, ctClass)) {
-                    return jdbcInstrumentor.instrumentJdbcConnection(ctClass, uninstrumentedByteCode);
-                }
-
-                if (jdbcInstrumentor.isJdbcPreparedStatement(resource)) {
-                    return jdbcInstrumentor.instrumentJdbcPreparedStatement(ctClass, uninstrumentedByteCode);
-                }
-                if (jdbcInstrumentor.isJdbcPreparedStatementImpl(resource, ctClass)) {
-                    return jdbcInstrumentor.instrumentJdbcPreparedStatementImpl(ctClass, uninstrumentedByteCode);
-                }
+//                if (jdbcInstrumentor.isJdbcPreparedStatement(resource)) {
+//                    return jdbcInstrumentor.instrumentJdbcPreparedStatement(ctClass, uninstrumentedByteCode);
+//                }
+//                if (jdbcInstrumentor.isJdbcPreparedStatementImpl(resource, ctClass)) {
+//                    return jdbcInstrumentor.instrumentJdbcPreparedStatementImpl(ctClass, uninstrumentedByteCode);
+//                }
+//                System.out.println(resource);
                 if (shouldInclude(resource, includes)) {
                     return instrumentMethods(ctClass, uninstrumentedByteCode);
                 }
